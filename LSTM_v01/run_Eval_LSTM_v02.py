@@ -24,7 +24,7 @@ import tensorflow as tf
 
 # this version load entire model, and runs on an independent test set
 
-dataSetRoot = r'.\Dataset'
+dataSetRoot = r'..\Dataset'
 
 checkpoint_filepath = r'Checkpoints'
 CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_1000_epochs')

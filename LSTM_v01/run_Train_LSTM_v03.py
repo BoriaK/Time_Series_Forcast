@@ -25,7 +25,7 @@ import tensorflow as tf
 # this version splits training data in to training and testing, and performs evaluation every 50 epochs. also it save
 # the entire model as checkpoint
 
-dataSetRoot = r'.\Dataset'
+dataSetRoot = r'..\Dataset'
 
 checkpoint_filepath = r'Checkpoints'
 
