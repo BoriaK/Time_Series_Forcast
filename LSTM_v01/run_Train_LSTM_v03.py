@@ -21,17 +21,40 @@ from Models import lstm_model_deep
 from Models import forecast_lstm
 import os.path
 import tensorflow as tf
+import argparse
 
 # this version splits training data in to training and testing, and performs evaluation every 50 epochs. also it save
 # the entire model as checkpoint
 
-dataSetRoot = r'..\Dataset'
+parser = argparse.ArgumentParser()
+# parser.add_argument('--resume_epoch', type=int, default=None, help='starting epoch')
+parser.add_argument('--n_epochs', type=int, default=500, help='number of epochs of training')
+parser.add_argument('--batch_size', type=int, default=1, help='size of the batches')
+parser.add_argument('--data', type=str, default=r'../Dataset', help='root directory of the '
+                                                                    'dataset')
+# parser.add_argument('--save_results', action='store_false', default=True,
+#                     help='save result plots after each eval cycle')
+# parser.add_argument('--cuda', action='store_true', help='use GPU computation')
+parser.add_argument('--root_chkps', type=str, default=r'./Checkpoints', help='checkpoint folder')
+args = parser.parse_args()
+print(args)
+'''adding types to arguments'''
+# args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# print(args.device)
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
-checkpoint_filepath = r'Checkpoints'
+if not os.path.isdir(args.root_chkps):
+    os.mkdir(args.root_chkps)
+
+# dataSetRoot = r'../Dataset'
+dataSetRoot = args.data
+
+# checkpoint_filepath = r'./Checkpoints'
+checkpoint_filepath = args.root_chkps
 
 # load dataset
 series = read_csv(os.path.join(dataSetRoot, 'Traffic_Data_10k.csv'), header=0, index_col=0, squeeze=True)
-print(series.head())
+# print(series.head())
 
 # transform data to be stationary
 raw_values = series.values
@@ -53,7 +76,8 @@ X = X.reshape(X.shape[0], 1, X.shape[1])
 # create the model
 batch_size = 1
 LSTM_Model = lstm_model_deep(X.shape[1], X.shape[2], batch_size=batch_size, neurons=10)
-nb_epoch = 1000  # number of training epochs should be ~3K
+# nb_epoch = 1000  # number of training epochs should be ~3K
+nb_epoch = args.n_epochs
 
 # Train loop
 for i in range(nb_epoch):

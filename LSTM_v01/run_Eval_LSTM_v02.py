@@ -21,13 +21,23 @@ from Models import lstm_model_deep
 from Models import forecast_lstm
 import os.path
 import tensorflow as tf
+import argparse
 
 # this version load entire model, and runs on an independent test set
 
-dataSetRoot = r'..\Dataset'
+parser = argparse.ArgumentParser()
+parser.add_argument('--n_epochs', type=int, default=500, help='number of epochs of tested model')
+args = parser.parse_args()
+print(args)
 
-checkpoint_filepath = r'Checkpoints'
-CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_1000_epochs')
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+nb_epoch = args.n_epochs
+
+dataSetRoot = r'../Dataset'
+
+checkpoint_filepath = r'./Checkpoints'
+CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(nb_epoch) + '_epochs')
 
 # load testing dataset
 Test_series = read_csv(os.path.join(dataSetRoot, 'Traffic_Data_1k.csv'), header=0, index_col=0, squeeze=True)
@@ -71,4 +81,5 @@ plt.ylabel('Data Volume [Gb]')
 plt.grid()
 plt.title('Data Volume over Time')
 plt.legend(['Validation dataset', 'Predictions'])
-plt.show()
+# plt.show()
+plt.savefig('./Result_Plots/' + 'cp_5x10_' + str(nb_epoch) + '_epochs.png', bbox_inches='tight')
