@@ -76,6 +76,10 @@ print('Test RMSE: %.3f' % rmse)
 # line plot of observed vs predicted
 plt.plot(raw_Test_values[-200:])
 plt.plot(predictions[-200:])
+############# for debug:
+# plt.plot(raw_Test_values[:200])
+# plt.plot(predictions[:200])
+##########################
 plt.xlabel('Time [s]')
 plt.ylabel('Data Volume [Gb]')
 plt.grid()

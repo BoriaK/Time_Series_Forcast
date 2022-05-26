@@ -8,6 +8,7 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.layers import LSTM
+from keras.layers import CuDNNLSTM
 from math import sqrt
 from matplotlib import pyplot
 import numpy
@@ -51,13 +52,24 @@ def lstm_model(x_shape1, x_shape2, batch_size, neurons):
     return model
 
 
-def lstm_model_deep(x_shape1, x_shape2, batch_size, neurons):  # a model with 5 deep LSTM layers
+def lstm_model_deep(device, x_shape1, x_shape2, batch_size, neurons):  # a model with 5 deep LSTM layers
     model = Sequential()
-    model.add(LSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
-    model.add(LSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
-    model.add(LSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
-    model.add(LSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
-    model.add(LSTM(neurons, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+    if device == 'cpu':
+        model.add(LSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+        model.add(LSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+        model.add(LSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+        model.add(LSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+        model.add(LSTM(neurons, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+    else:
+        model.add(
+            CuDNNLSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+        model.add(
+            CuDNNLSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+        model.add(
+            CuDNNLSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+        model.add(
+            CuDNNLSTM(neurons, return_sequences=True, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
+        model.add(CuDNNLSTM(neurons, batch_input_shape=(batch_size, x_shape1, x_shape2), stateful=True))
     model.add(Dense(1))
     model.compile(loss='mean_squared_error', optimizer='adam')
     return model

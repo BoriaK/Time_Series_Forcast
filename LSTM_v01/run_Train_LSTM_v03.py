@@ -41,6 +41,11 @@ print(args)
 '''adding types to arguments'''
 # args.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # print(args.device)
+if not tf.config.list_physical_devices('GPU'):
+    Device = 'cpu'
+else:
+    Device = 'cuda'
+
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 if not os.path.isdir(args.root_chkps):
@@ -75,7 +80,7 @@ X = X.reshape(X.shape[0], 1, X.shape[1])
 
 # create the model
 batch_size = 1
-LSTM_Model = lstm_model_deep(X.shape[1], X.shape[2], batch_size=batch_size, neurons=10)
+LSTM_Model = lstm_model_deep(Device, X.shape[1], X.shape[2], batch_size=batch_size, neurons=10)
 # nb_epoch = 1000  # number of training epochs should be ~3K
 nb_epoch = args.n_epochs
 
@@ -83,6 +88,7 @@ nb_epoch = args.n_epochs
 for i in range(nb_epoch):
     print(i)
     LSTM_Model.fit(X, y, epochs=1, batch_size=batch_size, verbose=0, shuffle=False)
+    # LSTM_Model.fit(X, y, epochs=1, batch_size=batch_size, verbose=0, shuffle=False, steps_per_epoch=len(X))
     LSTM_Model.reset_states()
     if (i + 1) % 50 == 0:
         # walk-forward validation on the test data
@@ -104,6 +110,6 @@ for i in range(nb_epoch):
 train_reshaped = train_scaled[:, 0].reshape(len(train_scaled), 1, 1)
 LSTM_Model.predict(train_reshaped, batch_size=1)
 
-CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(nb_epoch) + '_epochs')
+CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(nb_epoch) + '_epochs_' + Device)
 LSTM_Model.save(CheckPoint)
-print('checkpoint ' + 'cp_5x10_' + str(nb_epoch) + '_epochs ' + 'is saved')
+print('checkpoint ' + 'cp_5x10_' + str(nb_epoch) + '_epochs_' + Device + 'is saved')
