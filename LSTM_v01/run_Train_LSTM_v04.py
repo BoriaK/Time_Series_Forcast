@@ -82,6 +82,7 @@ scaler, train_scaled, test_scaled = scale(train, test)
 # create dataset object
 ds_train = tf.data.Dataset.from_tensor_slices(train).prefetch(buffer_size=tf.data.AUTOTUNE)
 ds_eval = tf.data.Dataset.from_tensor_slices(test).prefetch(buffer_size=tf.data.AUTOTUNE)
+list(ds_train.as_numpy_iterator())
 
 X, y = train_scaled[:, 0:-1], train_scaled[:, -1]
 X = X.reshape(X.shape[0], 1, X.shape[1])
