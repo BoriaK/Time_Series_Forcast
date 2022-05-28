@@ -13,6 +13,7 @@ from math import sqrt
 from matplotlib import pyplot
 import numpy
 
+# uses keras (not tensorflowf.keras)
 
 # fit an LSTM network to training data
 def fit_lstm(train, batch_size, nb_epoch, neurons):

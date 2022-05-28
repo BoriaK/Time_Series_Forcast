@@ -2,7 +2,6 @@ from pandas import DataFrame
 from pandas import Series
 from pandas import concat
 from pandas import read_csv
-from pandas import datetime
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
@@ -10,7 +9,7 @@ from keras.layers import Dense
 from keras.layers import LSTM
 from math import sqrt
 from matplotlib import pyplot as plt
-import numpy
+import numpy as np
 from DataSets import parser
 from DataSets import timeseries_to_supervised
 from DataSets import difference
@@ -22,9 +21,13 @@ from Models import forecast_lstm
 import os.path
 import tensorflow as tf
 import argparse
+import shutil
 
-# this version splits training data in to training and testing, and performs evaluation every 50 epochs. also it save
-# the entire model as checkpoint
+# this version trains the model as STATEFULL.
+# it preserves the state between each training batch, and manually resets the state between each training epoch.
+# the number of epochs defined in model is 1 and an external for loop iterates over nb_epochs
+# this version splits training data in to training and evaluation, and performs evaluation every 10 epochs.
+# it save the entire model as checkpoint, for best RMSE score during evaluation
 
 parser = argparse.ArgumentParser()
 # parser.add_argument('--resume_epoch', type=int, default=None, help='starting epoch')
@@ -85,12 +88,13 @@ LSTM_Model = lstm_model_deep(Device, X.shape[1], X.shape[2], batch_size=batch_si
 nb_epoch = args.n_epochs
 
 # Train loop
+rmse_arr = list()
+eval_count = 0 #counter for the evaluation cycles
 for i in range(nb_epoch):
     print(i)
     LSTM_Model.fit(X, y, epochs=1, batch_size=batch_size, verbose=0, shuffle=False)
-    # LSTM_Model.fit(X, y, epochs=1, batch_size=batch_size, verbose=0, shuffle=False, steps_per_epoch=len(X))
     LSTM_Model.reset_states()
-    if (i + 1) % 50 == 0:
+    if (i + 1) % 10 == 0:
         # walk-forward validation on the test data
         predictions = list()
         for j in range(len(test_scaled)):
@@ -105,11 +109,31 @@ for i in range(nb_epoch):
         # report performance
         rmse = sqrt(mean_squared_error(raw_values[-100:], predictions))
         print('Test RMSE: %.3f' % rmse)
+        rmse_arr.append(rmse)
+        eval_count += 1
+        if i + 1 == 10:
+            # Save first checkpoint:
+            CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(i + 1) + '_epochs_' + Device + '_w.o_state')
+            LSTM_Model.save(CheckPoint)
+            print('checkpoint ' + 'cp_5x10_' + str(i + 1) + '_epochs_' + Device + ' is saved')
+        # elif rmse <= rmse_arr[eval_count-1]:
+        elif rmse <= np.amin(rmse_arr):
+            # Save Best checkpoint:
+            # remove last saved checkpoint:
+            shutil.rmtree(CheckPoint, ignore_errors=True)
+            print("Deleted '%s' directory successfully" % CheckPoint)
+            CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(i + 1) + '_epochs_' + Device + '_w.o_state')
+            LSTM_Model.save(CheckPoint)
+            print('checkpoint ' + 'cp_5x10_' + str(i + 1) + '_epochs_' + Device + ' is saved')
 
-# forecast the entire training dataset to build up state for forecasting
-train_reshaped = train_scaled[:, 0].reshape(len(train_scaled), 1, 1)
-LSTM_Model.predict(train_reshaped, batch_size=1)
 
-CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(nb_epoch) + '_epochs_' + Device)
-LSTM_Model.save(CheckPoint)
-print('checkpoint ' + 'cp_5x10_' + str(nb_epoch) + '_epochs_' + Device + 'is saved')
+########### Optional##################
+# # forecast the entire training dataset to build up state for forecasting
+# train_reshaped = train_scaled[:, 0].reshape(len(train_scaled), 1, 1)
+# LSTM_Model.predict(train_reshaped, batch_size=1)
+##########################################################
+# Save the last Checkpoint
+# # CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(nb_epoch) + '_epochs_' + Device + '_w.o_state')
+# CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(nb_epoch) + '_epochs_' + Device)
+# LSTM_Model.save(CheckPoint)
+# print('checkpoint ' + 'cp_5x10_' + str(nb_epoch) + '_epochs_' + Device + ' is saved')

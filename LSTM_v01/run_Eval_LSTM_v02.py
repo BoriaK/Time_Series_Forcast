@@ -2,7 +2,6 @@ from pandas import DataFrame
 from pandas import Series
 from pandas import concat
 from pandas import read_csv
-from pandas import datetime
 from sklearn.metrics import mean_squared_error
 from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
@@ -30,6 +29,11 @@ parser.add_argument('--n_epochs', type=int, default=500, help='number of epochs 
 args = parser.parse_args()
 print(args)
 
+if not tf.config.list_physical_devices('GPU'):
+    Device = 'cpu'
+else:
+    Device = 'cuda'
+
 print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
 
 nb_epoch = args.n_epochs
@@ -37,7 +41,8 @@ nb_epoch = args.n_epochs
 dataSetRoot = r'../Dataset'
 
 checkpoint_filepath = r'./Checkpoints'
-CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(nb_epoch) + '_epochs')
+# CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + str(nb_epoch) + '_epochs_' + Device)
+CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_500_epochs')
 
 # load testing dataset
 Test_series = read_csv(os.path.join(dataSetRoot, 'Traffic_Data_1k.csv'), header=0, index_col=0, squeeze=True)
@@ -85,5 +90,5 @@ plt.ylabel('Data Volume [Gb]')
 plt.grid()
 plt.title('Data Volume over Time')
 plt.legend(['Validation dataset', 'Predictions'])
-# plt.show()
-plt.savefig('./Result_Plots/' + 'cp_5x10_' + str(nb_epoch) + '_epochs.png', bbox_inches='tight')
+plt.show()
+# plt.savefig('./Result_Plots/' + 'cp_5x10_' + str(nb_epoch) + '_epochs.png', bbox_inches='tight')
