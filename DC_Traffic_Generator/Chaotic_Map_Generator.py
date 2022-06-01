@@ -20,7 +20,7 @@ N = 100000  # number of samples in dataset
 Time = np.arange(N)
 
 for i in range(0, N):
-    if 0 < x[i] < d:
+    if 0 < x[i] <= d:
         x_nxt = x[i] + (1 - d) * np.power((x[i] / d), m1)
     elif d < x[i] < 1:
         x_nxt = x[i] - d * np.power((1 - x[i]) / (1 - d), m2)
