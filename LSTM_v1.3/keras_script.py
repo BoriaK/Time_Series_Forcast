@@ -7,6 +7,7 @@ import tensorflow as tf
 from pandas import read_csv
 import os
 from pandas import DataFrame
+from matplotlib import pyplot as plt
 
 # load dataset
 dataSetRoot = r'../Dataset'
@@ -14,11 +15,12 @@ Series = read_csv(os.path.join(dataSetRoot, 'Traffic_Data_1k.csv'), header=0, in
 raw_values = Series.values
 
 # split the data to training and testing
-# df = DataFrame(Series)
-df = DataFrame(raw_values)
+# df = Series  # get data frame from csv
+df = DataFrame(Series)
+# df = DataFrame(raw_values)  # get data frame from time series
 n = len(df)
-# train_df = df[0:int(n * 0.9)-1]
-train_df = df[0:int(n * 0.9)]
+train_df = df[0:int(n * 0.9) - 1]   # if take from csv
+# train_df = df[0:int(n * 0.9)]  # if take from time series
 # val_df = df[int(n*0.7):int(n*0.9)]
 val_df = df[int(n * 0.9):]
 
@@ -45,6 +47,7 @@ class WindowGenerator():
                                           enumerate(label_columns)}
         self.column_indices = {name: i for i, name in
                                enumerate(train_df.columns)}
+        # self.column_indices = {train_df.name: 0}  # for a 1 dimentional dataset
 
         # Work out the window parameters.
         self.input_width = input_width
@@ -68,6 +71,18 @@ class WindowGenerator():
             f'Label column name(s): {self.label_columns}'])
 
 
+###Example Window generator###############################
+w1 = WindowGenerator(input_width=24, label_width=1, shift=1,
+                     label_columns=['Nex Time Sample'])
+w2 = WindowGenerator(input_width=6, label_width=1, shift=1)
+w3 = WindowGenerator(input_width=1, label_width=1, shift=1,
+                     label_columns=None
+                     )
+print(w3)
+
+
+#################################################
+
 def split_window(self, features):
     inputs = features[:, self.input_slice, :]
     labels = features[:, self.labels_slice, :]
@@ -86,25 +101,85 @@ def split_window(self, features):
 
 WindowGenerator.split_window = split_window
 
-###Debug####
-w1 = WindowGenerator(input_width=24, label_width=1, shift=1,
-                     label_columns=['Data [Gb]'])
-w2 = WindowGenerator(input_width=6, label_width=1, shift=1)
-w3 = WindowGenerator(input_width=1, label_width=1, shift=1,
-                     label_columns=None
-                     )
-print(w3)
-
+###Example Split window###############################
 # Stack three slices, the length of the total window.
-example_window = tf.stack([np.array(train_df[:w3.total_window_size]),
-                           np.array(train_df[100:100 + w3.total_window_size]),
-                           np.array(train_df[200:200 + w3.total_window_size])])
+# example_window = tf.stack([np.array(train_df[:w2.total_window_size]),
+#                            np.array(train_df[100:100 + w2.total_window_size]),
+#                            np.array(train_df[200:200 + w2.total_window_size])])
+example_window = tf.stack([np.array(train_df[:w2.total_window_size-1]),
+                           np.array(train_df[100:100 + w2.total_window_size-1]),
+                           np.array(train_df[200:200 + w2.total_window_size-1])])
 
-example_inputs, example_labels = w3.split_window(example_window)
+example_inputs, example_labels = w2.split_window(example_window)
 
 print('All shapes are: (batch, time, features)')
 print(f'Window shape: {example_window.shape}')
 print(f'Inputs shape: {example_inputs.shape}')
 print(f'Labels shape: {example_labels.shape}')
 
-############
+
+###########################################################
+
+def plot(self, model=None, plot_col='Data [Gb]', max_subplots=3):
+# def plot(self, model=None, plot_col=None, max_subplots=3):
+    inputs, labels = self.example
+    plt.figure(figsize=(12, 8))
+    if plot_col is not None:
+        plot_col_index = self.column_indices[plot_col]
+    else:
+        plot_col_index = self.column_indices[0]
+    max_n = min(max_subplots, len(inputs))
+    for n in range(max_n):
+        plt.subplot(max_n, 1, n + 1)
+        plt.ylabel(f'{plot_col} [normed]')
+        plt.plot(self.input_indices, inputs[n, :, plot_col_index],
+                 label='Inputs', marker='.', zorder=-10)
+
+        if self.label_columns:
+            label_col_index = self.label_columns_indices.get(plot_col, None)
+        else:
+            label_col_index = plot_col_index
+
+        if label_col_index is None:
+            continue
+
+        plt.scatter(self.label_indices, labels[n, :, label_col_index],
+                    edgecolors='k', label='Labels', c='#2ca02c', s=64)
+        if model is not None:
+            predictions = model(inputs)
+            plt.scatter(self.label_indices, predictions[n, :, label_col_index],
+                        marker='X', edgecolors='k', label='Predictions',
+                        c='#ff7f0e', s=64)
+
+        if n == 0:
+            plt.legend()
+
+    plt.xlabel('Time [sec]')
+
+
+WindowGenerator.plot = plot
+
+####### Example plot#################
+w2.example = example_inputs, example_labels
+# w2.plot()
+
+
+##########################################################
+
+
+def make_dataset(self, data):
+    data = np.array(data, dtype=np.float32)
+    ds = tf.keras.utils.timeseries_dataset_from_array(
+        data=data,
+        targets=None,
+        sequence_length=self.total_window_size,
+        sequence_stride=1,
+        shuffle=True,
+        batch_size=32, )
+
+    ds = ds.map(self.split_window)
+
+    return ds
+
+
+WindowGenerator.make_dataset = make_dataset
