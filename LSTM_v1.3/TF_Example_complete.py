@@ -19,7 +19,7 @@ raw_values = Series.values
 df = DataFrame(Series)
 # df = DataFrame(raw_values)  # get data frame from time series
 n = len(df)
-train_df = df[0:int(n * 0.9) - 1]   # if take from csv
+train_df = df[0:int(n * 0.9) - 1]  # if take from csv
 # train_df = df[0:int(n * 0.9)]  # if take from time series
 # val_df = df[int(n*0.7):int(n*0.9)]
 val_df = df[int(n * 0.9):]
@@ -72,13 +72,15 @@ class WindowGenerator():
 
 
 ###Example Window generator###############################
-w1 = WindowGenerator(input_width=24, label_width=1, shift=1,
-                     label_columns=['Nex Time Sample'])
+# w1 = WindowGenerator(input_width=24, label_width=1, shift=1,
+#                      label_columns=['Nex Time Sample'])
 w2 = WindowGenerator(input_width=6, label_width=1, shift=1)
-w3 = WindowGenerator(input_width=1, label_width=1, shift=1,
-                     label_columns=None
-                     )
-print(w3)
+
+
+# w3 = WindowGenerator(input_width=1, label_width=1, shift=1,
+#                      label_columns=None
+#                      )
+# print(w3)
 
 
 #################################################
@@ -101,27 +103,31 @@ def split_window(self, features):
 
 WindowGenerator.split_window = split_window
 
+
 ###Example Split window###############################
 # Stack three slices, the length of the total window.
+# This method works if I use raw data from a time series
 # example_window = tf.stack([np.array(train_df[:w2.total_window_size]),
 #                            np.array(train_df[100:100 + w2.total_window_size]),
 #                            np.array(train_df[200:200 + w2.total_window_size])])
-example_window = tf.stack([np.array(train_df[:w2.total_window_size-1]),
-                           np.array(train_df[100:100 + w2.total_window_size-1]),
-                           np.array(train_df[200:200 + w2.total_window_size-1])])
 
-example_inputs, example_labels = w2.split_window(example_window)
-
-print('All shapes are: (batch, time, features)')
-print(f'Window shape: {example_window.shape}')
-print(f'Inputs shape: {example_inputs.shape}')
-print(f'Labels shape: {example_labels.shape}')
+# This method works if I use raw data from .csv
+# example_window = tf.stack([np.array(train_df[:w2.total_window_size-1]),
+#                            np.array(train_df[100:100 + w2.total_window_size-1]),
+#                            np.array(train_df[200:200 + w2.total_window_size-1])])
+#
+# example_inputs, example_labels = w2.split_window(example_window)
+#
+# print('All shapes are: (batch, time, features)')
+# print(f'Window shape: {example_window.shape}')
+# print(f'Inputs shape: {example_inputs.shape}')
+# print(f'Labels shape: {example_labels.shape}')
 
 
 ###########################################################
 
 def plot(self, model=None, plot_col='Data [Gb]', max_subplots=3):
-# def plot(self, model=None, plot_col=None, max_subplots=3):
+    # def plot(self, model=None, plot_col=None, max_subplots=3):
     inputs, labels = self.example
     plt.figure(figsize=(12, 8))
     if plot_col is not None:
@@ -159,8 +165,9 @@ def plot(self, model=None, plot_col='Data [Gb]', max_subplots=3):
 
 WindowGenerator.plot = plot
 
+
 ####### Example plot#################
-w2.example = example_inputs, example_labels
+# w2.example = example_inputs, example_labels
 # w2.plot()
 
 
@@ -183,3 +190,46 @@ def make_dataset(self, data):
 
 
 WindowGenerator.make_dataset = make_dataset
+
+
+### Dataset Debug################
+@property
+def train(self):
+    return self.make_dataset(self.train_df)
+
+
+@property
+def val(self):
+    return self.make_dataset(self.val_df)
+
+
+@property
+def test(self):
+    return self.make_dataset(self.test_df)
+
+
+@property
+def example(self):
+    """Get and cache an example batch of `inputs, labels` for plotting."""
+    result = getattr(self, '_example', None)
+    if result is None:
+        # No example batch was found, so get one from the `.train` dataset
+        result = next(iter(self.train))
+        # And cache it for next time
+        self._example = result
+    return result
+
+
+WindowGenerator.train = train
+WindowGenerator.val = val
+# WindowGenerator.test = test
+WindowGenerator.example = example
+
+###################################################################
+
+# Each element is an (inputs, label) pair.
+w2.train.element_spec
+
+for example_inputs, example_labels in w2.train.take(1):
+    print(f'Inputs shape (batch, time, features): {example_inputs.shape}')
+    print(f'Labels shape (batch, time, features): {example_labels.shape}')
