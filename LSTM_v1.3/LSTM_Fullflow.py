@@ -1,5 +1,5 @@
-import IPython
-import IPython.display
+# import IPython
+# import IPython.display
 import numpy as np
 # from tensorflow.keras.models import Sequential
 import tensorflow as tf
@@ -8,6 +8,10 @@ from pandas import read_csv
 import os
 from pandas import DataFrame
 from matplotlib import pyplot as plt
+
+#####This is an example of full flow of:
+# load data -> generate window -> create model -> compile and fit
+
 
 # load dataset
 dataSetRoot = r'../Dataset'
@@ -24,11 +28,17 @@ train_df = df[0:int(n * 0.9) - 1]  # if take from csv
 # val_df = df[int(n*0.7):int(n*0.9)]
 val_df = df[int(n * 0.9):]
 
-
 # test_df = df[int(n*0.9):]
 
+# Normalize the Data
+train_mean = train_df.mean()
+train_std = train_df.std()
 
-class WindowGenerator():
+train_df = (train_df - train_mean) / train_std
+val_df = (val_df - train_mean) / train_std
+
+
+class WindowGenerator:
     # def __init__(self, input_width, label_width, shift,
     #              train_df=train_df, val_df=val_df, test_df=test_df,
     #              label_columns=None):
@@ -71,20 +81,6 @@ class WindowGenerator():
             f'Label column name(s): {self.label_columns}'])
 
 
-###Example Window generator###############################
-# w1 = WindowGenerator(input_width=24, label_width=1, shift=1,
-#                      label_columns=['Nex Time Sample'])
-w2 = WindowGenerator(input_width=6, label_width=1, shift=1)
-
-
-# w3 = WindowGenerator(input_width=1, label_width=1, shift=1,
-#                      label_columns=None
-#                      )
-# print(w3)
-
-
-#################################################
-
 def split_window(self, features):
     inputs = features[:, self.input_slice, :]
     labels = features[:, self.labels_slice, :]
@@ -101,32 +97,7 @@ def split_window(self, features):
     return inputs, labels
 
 
-WindowGenerator.split_window = split_window
-
-
-###Example Split window###############################
-# Stack three slices, the length of the total window.
-# This method works if I use raw data from a time series
-# example_window = tf.stack([np.array(train_df[:w2.total_window_size]),
-#                            np.array(train_df[100:100 + w2.total_window_size]),
-#                            np.array(train_df[200:200 + w2.total_window_size])])
-
-# This method works if I use raw data from .csv
-# example_window = tf.stack([np.array(train_df[:w2.total_window_size-1]),
-#                            np.array(train_df[100:100 + w2.total_window_size-1]),
-#                            np.array(train_df[200:200 + w2.total_window_size-1])])
-#
-# example_inputs, example_labels = w2.split_window(example_window)
-#
-# print('All shapes are: (batch, time, features)')
-# print(f'Window shape: {example_window.shape}')
-# print(f'Inputs shape: {example_inputs.shape}')
-# print(f'Labels shape: {example_labels.shape}')
-
-
-###########################################################
-
-def plot(self, model=None, plot_col='Data [Gb]', max_subplots=3):
+def plot(self, model=None, plot_col='Data [Gb]', max_subplots=1):
     # def plot(self, model=None, plot_col=None, max_subplots=3):
     inputs, labels = self.example
     plt.figure(figsize=(12, 8))
@@ -161,17 +132,7 @@ def plot(self, model=None, plot_col='Data [Gb]', max_subplots=3):
             plt.legend()
 
     plt.xlabel('Time [sec]')
-
-
-WindowGenerator.plot = plot
-
-
-####### Example plot#################
-# w2.example = example_inputs, example_labels
-# w2.plot()
-
-
-##########################################################
+    plt.show()
 
 
 def make_dataset(self, data):
@@ -189,10 +150,6 @@ def make_dataset(self, data):
     return ds
 
 
-WindowGenerator.make_dataset = make_dataset
-
-
-### Dataset Debug################
 @property
 def train(self):
     return self.make_dataset(self.train_df)
@@ -220,16 +177,51 @@ def example(self):
     return result
 
 
+WindowGenerator.split_window = split_window
+WindowGenerator.plot = plot
+WindowGenerator.make_dataset = make_dataset
 WindowGenerator.train = train
 WindowGenerator.val = val
 # WindowGenerator.test = test
 WindowGenerator.example = example
 
-###################################################################
+MAX_EPOCHS = 10
 
-# Each element is an (inputs, label) pair.
-w2.train.element_spec
 
-for example_inputs, example_labels in w2.train.take(1):
-    print(f'Inputs shape (batch, time, features): {example_inputs.shape}')
-    print(f'Labels shape (batch, time, features): {example_labels.shape}')
+def compile_and_fit(model, window, patience=2):
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                      patience=patience,
+                                                      mode='min')
+
+    model.compile(loss=tf.losses.MeanSquaredError(),
+                  optimizer=tf.optimizers.Adam(),
+                  metrics=[tf.metrics.MeanAbsoluteError()])
+
+    history = model.fit(window.train, epochs=MAX_EPOCHS,
+                        validation_data=window.val,
+                        callbacks=[early_stopping])
+    return history
+
+
+wide_window = WindowGenerator(input_width=24, label_width=24, shift=1, label_columns=['Data [Gb]'])
+
+Num_Neurons = 10
+LSTM_Window = WindowGenerator(input_width=Num_Neurons, label_width=1, shift=1, label_columns=['Data [Gb]'])
+# batch_input_shape=
+lstm_model = tf.keras.models.Sequential([
+    # Shape [batch, time, features] => [batch, time, lstm_units]
+    # tf.keras.layers.LSTM(32, return_sequences=True, batch_input_shape=LSTM_Window.example[0].shape, stateful=True),
+    tf.keras.layers.LSTM(units=32, return_sequences=True),
+    # Shape => [batch, time, features]
+    tf.keras.layers.Dense(units=1)
+])
+
+# print('Input shape:', wide_window.example[0].shape)
+# print('Output shape:', lstm_model(wide_window.example[0]).shape)
+
+# print('Input shape:', LSTM_Window.example[0].shape)
+# print('Output shape:', lstm_model(LSTM_Window.example[0]).shape)
+
+History = compile_and_fit(lstm_model, LSTM_Window)
+
+print('')

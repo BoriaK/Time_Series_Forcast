@@ -1,4 +1,4 @@
-from pandas import datetime
+# from pandas import datetime
 from pandas import DataFrame
 from pandas import concat
 from pandas import Series
@@ -11,8 +11,8 @@ from matplotlib import pyplot as plt
 # set of preprocessing functions for LSTM
 
 # date-time parsing function for loading the shampoo dataset
-def parser(x):
-    return datetime.strptime('190' + x, '%Y-%m')
+# def parser(x):
+#     return datetime.strptime('190' + x, '%Y-%m')
 
 
 # frame a sequence as a supervised learning problem
@@ -74,7 +74,7 @@ def scale(train, test):
 #     return scaler, test_scaled
 
 
-def scaleUni(data):
+def scale_uni(data):
     # fit scaler
     scaler = MinMaxScaler(feature_range=(-1, 1))
     scaler = scaler.fit(data)
@@ -93,7 +93,7 @@ def invert_scale(scaler, X, value):
     return inverted[0, -1]
 
 
-class WindowGenerator():
+class WindowGenerator:
     # def __init__(self, input_width, label_width, shift,
     #              train_df=train_df, val_df=val_df, test_df=test_df,
     #              label_columns=None):
@@ -150,9 +150,8 @@ def split_window(self, features):
     return inputs, labels
 
 
-def plot(self, model=None, plot_col='Data [Gb]', max_subplots=3):
-    # def plot(self, model=None, plot_col=None, max_subplots=3):
-    inputs, labels = self.example  # Need to make it an external input
+def plot(self, model=None, plot_col='Data [Gb]', max_subplots=1):
+    inputs, labels = self.example
     plt.figure(figsize=(12, 8))
     if plot_col is not None:
         plot_col_index = self.column_indices[plot_col]
@@ -185,7 +184,8 @@ def plot(self, model=None, plot_col='Data [Gb]', max_subplots=3):
             plt.legend()
 
     plt.xlabel('Time [sec]')
-    # plt.show()
+    plt.grid()
+    plt.show()
 
 
 def make_dataset(self, data):
@@ -195,7 +195,7 @@ def make_dataset(self, data):
         targets=None,
         sequence_length=self.total_window_size,
         sequence_stride=1,
-        shuffle=True,
+        shuffle=False,
         batch_size=32, )
 
     ds = ds.map(self.split_window)
