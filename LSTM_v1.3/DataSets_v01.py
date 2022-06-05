@@ -196,7 +196,8 @@ def make_dataset(self, data):
         sequence_length=self.total_window_size,
         sequence_stride=1,
         shuffle=False,
-        batch_size=32, )
+        batch_size=1, )
+        # batch_size=32, )
 
     ds = ds.map(self.split_window)
 

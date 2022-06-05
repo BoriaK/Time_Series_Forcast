@@ -71,11 +71,11 @@ def conv_model(conv_width):
 
 
 # batch_input_shape=
-def lstm_model():
+def lstm_model(num_neurons, lstm_window_shape):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
-        # tf.keras.layers.LSTM(32, return_sequences=True, batch_input_shape=LSTM_Window.example[0].shape, stateful=True),
-        tf.keras.layers.LSTM(units=32, return_sequences=True),
+        tf.keras.layers.LSTM(units=num_neurons, batch_input_shape=lstm_window_shape, return_sequences=True, stateful=True),
+        # tf.keras.layers.LSTM(units=num_neurons, return_sequences=True),
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=1)
     ])
@@ -85,7 +85,8 @@ def lstm_model():
 def lstm_model_multi_out(num_features):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
-        # tf.keras.layers.LSTM(32, return_sequences=True, batch_input_shape=LSTM_Window.example[0].shape, stateful=True),
+        # tf.keras.layers.LSTM(32, return_sequences=True,
+        # batch_input_shape=LSTM_Window.example[0].shape, stateful=True),
         tf.keras.layers.LSTM(units=32, return_sequences=True),
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=num_features)
@@ -135,7 +136,7 @@ class ResidualWrapper(tf.keras.Model):
 
 
 # Operational functions
-def compile_and_fit(model, window, epochs, patience=2):
+def compile_and_fit(model, window, epochs, patience=5):
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                       patience=patience,
                                                       mode='min',

@@ -143,7 +143,7 @@ def make_dataset(self, data):
         sequence_length=self.total_window_size,
         sequence_stride=1,
         shuffle=True,
-        batch_size=32, )
+        batch_size=1, )
 
     ds = ds.map(self.split_window)
 
@@ -188,7 +188,7 @@ WindowGenerator.example = example
 MAX_EPOCHS = 10
 
 
-def compile_and_fit(model, window, patience=2):
+def compile_and_fit(model, window, patience=5):
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                       patience=patience,
                                                       mode='min')
@@ -203,25 +203,45 @@ def compile_and_fit(model, window, patience=2):
     return history
 
 
-wide_window = WindowGenerator(input_width=24, label_width=24, shift=1, label_columns=['Data [Gb]'])
+# wide_window = WindowGenerator(input_width=24, label_width=24, shift=1, label_columns=['Data [Gb]'])
 
 Num_Neurons = 10
 LSTM_Window = WindowGenerator(input_width=Num_Neurons, label_width=1, shift=1, label_columns=['Data [Gb]'])
-# batch_input_shape=
+print('Input shape = [batch, time, features]: ', LSTM_Window.example[0].shape)
+
 lstm_model = tf.keras.models.Sequential([
     # Shape [batch, time, features] => [batch, time, lstm_units]
     # tf.keras.layers.LSTM(32, return_sequences=True, batch_input_shape=LSTM_Window.example[0].shape, stateful=True),
-    tf.keras.layers.LSTM(units=32, return_sequences=True),
+    tf.keras.layers.LSTM(units=Num_Neurons, batch_input_shape=LSTM_Window.example[0].shape, return_sequences=True, stateful=True),
+    # tf.keras.layers.LSTM(units=Num_Neurons, batch_input_shape=LSTM_Window.example[0].shape, return_sequences=True),
+    # tf.keras.layers.LSTM(units=32, return_sequences=True),
     # Shape => [batch, time, features]
     tf.keras.layers.Dense(units=1)
 ])
 
-# print('Input shape:', wide_window.example[0].shape)
-# print('Output shape:', lstm_model(wide_window.example[0]).shape)
+print('Output shape:', lstm_model(LSTM_Window.example[0]).shape)
 
-# print('Input shape:', LSTM_Window.example[0].shape)
+# print('Input shape = [batch, time, features]: ', LSTM_Window.example[0].shape)
 # print('Output shape:', lstm_model(LSTM_Window.example[0]).shape)
 
 History = compile_and_fit(lstm_model, LSTM_Window)
 
-print('')
+PredictionsVal = lstm_model.predict(LSTM_Window.val)
+PredictionsEval = lstm_model.evaluate(LSTM_Window.val)
+# PredictionsTrain = lstm_model.predict(LSTM_Window.train)
+
+LSTM_Window.plot(lstm_model)
+
+#############For printing Only####################
+# Label_Width = len(val_df)
+# Input_Width = Label_Width
+# Wide_LSTM_Window = WindowGenerator(
+#                                    input_width=Input_Width,
+#                                    label_width=Label_Width,
+#                                    shift=1,
+#                                    label_columns=['Data [Gb]'])
+#
+# # print('Input shape:', Wide_LSTM_Window.example[0].shape)
+# # print('Output shape:', lstm_model(Wide_LSTM_Window.example[0]).shape)
+# Wide_LSTM_Window.plot(lstm_model)
+# print('')
