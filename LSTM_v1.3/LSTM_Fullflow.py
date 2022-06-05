@@ -226,8 +226,8 @@ print('Output shape:', lstm_model(LSTM_Window.example[0]).shape)
 
 History = compile_and_fit(lstm_model, LSTM_Window)
 
-PredictionsVal = lstm_model.predict(LSTM_Window.val)
-PredictionsEval = lstm_model.evaluate(LSTM_Window.val)
+PredictionsVal = lstm_model.predict(LSTM_Window.val_df.values[0:10])
+# PredictionsEval = lstm_model.evaluate(LSTM_Window.val)
 # PredictionsTrain = lstm_model.predict(LSTM_Window.train)
 
 LSTM_Window.plot(lstm_model)

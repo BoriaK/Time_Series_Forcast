@@ -43,16 +43,16 @@ plt.show()
 
 # save data as .csv
 
-dataSetRoot = r'.\Dataset'
-
-header = ['Time [s]', 'Data [Gb]']
-yy = y.squeeze()
-arr = np.stack((Time, yy), axis=1)
-with open(os.path.join(dataSetRoot, 'Traffic_Data_'+str(int(N / 1000))+'k.csv'), 'w', encoding='UTF8', newline='') as f:
-    writer = csv.writer(f)
-
-    # write the header
-    writer.writerow(header)
-
-    # write multiple rows
-    writer.writerows(arr)
+# dataSetRoot = r'.\Dataset'
+#
+# header = ['Time [s]', 'Data [Gb]']
+# yy = y.squeeze()
+# arr = np.stack((Time, yy), axis=1)
+# with open(os.path.join(dataSetRoot, 'Traffic_Data_'+str(int(N / 1000))+'k.csv'), 'w', encoding='UTF8', newline='') as f:
+#     writer = csv.writer(f)
+#
+#     # write the header
+#     writer.writerow(header)
+#
+#     # write multiple rows
+#     writer.writerows(arr)

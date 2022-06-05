@@ -71,11 +71,12 @@ def conv_model(conv_width):
 
 
 # batch_input_shape=
-def lstm_model(num_neurons, lstm_window_shape):
+# def lstm_model(num_neurons, lstm_window_shape):
+def lstm_model(num_neurons):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
-        tf.keras.layers.LSTM(units=num_neurons, batch_input_shape=lstm_window_shape, return_sequences=True, stateful=True),
-        # tf.keras.layers.LSTM(units=num_neurons, return_sequences=True),
+        # tf.keras.layers.LSTM(units=num_neurons, batch_input_shape=lstm_window_shape, return_sequences=True, stateful=True),
+        tf.keras.layers.LSTM(units=num_neurons, return_sequences=True),
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=1)
     ])

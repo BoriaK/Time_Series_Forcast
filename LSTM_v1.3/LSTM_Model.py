@@ -1,5 +1,5 @@
-import IPython
-import IPython.display
+# import IPython
+# import IPython.display
 import numpy as np
 import tensorflow as tf
 from pandas import read_csv
@@ -35,7 +35,8 @@ LSTM_Window = WindowGenerator(train_df, val_df,
                               shift=1,
                               label_columns=['Data [Gb]'])
 
-LSTM_Model = lstm_model(Num_Neurons, LSTM_Window.example[0].shape)
+# LSTM_Model = lstm_model(Num_Neurons, LSTM_Window.example[0].shape)
+LSTM_Model = lstm_model(Num_Neurons)
 
 print('Input shape = [batch, time, features]: ', LSTM_Window.example[0].shape)
 print('Output shape:', LSTM_Model(LSTM_Window.example[0]).shape)
@@ -43,22 +44,22 @@ print('Output shape:', LSTM_Model(LSTM_Window.example[0]).shape)
 Max_Epochs = 10
 
 History = compile_and_fit(LSTM_Model, LSTM_Window, epochs=Max_Epochs)
-IPython.display.clear_output()
+# IPython.display.clear_output()
 val_performance = {'RNN LSTM': LSTM_Model.evaluate(LSTM_Window.val)}
 # performance = {}
 # performance['Dense'] = LSTM_Model.evaluate(LSTM_Window.test, verbose=0)
 
 # Generate and Plot a complete Evaluation window
 
-# Label_Width = len(val_df)
-# Input_Width = Label_Width
-# Wide_LSTM_Window = WindowGenerator(train_df, val_df,
-#                                    input_width=Input_Width,
-#                                    label_width=Label_Width,
-#                                    shift=1,
-#                                    label_columns=['Data [Gb]'])
-#
-# # print('Input shape:', Wide_LSTM_Window.example[0].shape)
-# # print('Output shape:', RNN_LSTM_Model(Wide_LSTM_Window.example[0]).shape)
-# Wide_LSTM_Window.plot(LSTM_Model)
+Label_Width = len(val_df)
+Input_Width = Label_Width
+Wide_LSTM_Window = WindowGenerator(train_df, val_df,
+                                   input_width=Input_Width,
+                                   label_width=Label_Width,
+                                   shift=1,
+                                   label_columns=['Data [Gb]'])
+
+# print('Input shape:', Wide_LSTM_Window.example[0].shape)
+# print('Output shape:', RNN_LSTM_Model(Wide_LSTM_Window.example[0]).shape)
+Wide_LSTM_Window.plot(LSTM_Model)
 ####################################################
