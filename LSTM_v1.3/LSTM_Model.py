@@ -9,6 +9,7 @@ from matplotlib import pyplot as plt
 from DataSets_v01 import WindowGenerator
 from Models_v01 import lstm_model
 from Models_v01 import compile_and_fit
+from Plot_Function import plotFunction
 
 # load the dataset
 dataSetRoot = r'../Dataset'
@@ -28,15 +29,15 @@ val_df = (val_df - train_mean) / train_std
 # test_df = (test_df - train_mean) / train_std
 
 
-Num_Neurons = 10  # effectively determines the size of the sliding window
+Window_Size = 10  # effectively determines the size of the sliding window
 LSTM_Window = WindowGenerator(train_df, val_df,
-                              input_width=Num_Neurons,
+                              input_width=Window_Size,
                               label_width=1,
                               shift=1,
                               label_columns=['Data [Gb]'])
 
-# LSTM_Model = lstm_model(Num_Neurons, LSTM_Window.example[0].shape)
-LSTM_Model = lstm_model(Num_Neurons)
+LSTM_Model = lstm_model(Window_Size, LSTM_Window.example[0].shape)
+# LSTM_Model = lstm_model(Window_Size)
 
 print('Input shape = [batch, time, features]: ', LSTM_Window.example[0].shape)
 print('Output shape:', LSTM_Model(LSTM_Window.example[0]).shape)
@@ -45,21 +46,20 @@ Max_Epochs = 10
 
 History = compile_and_fit(LSTM_Model, LSTM_Window, epochs=Max_Epochs)
 # IPython.display.clear_output()
-val_performance = {'RNN LSTM': LSTM_Model.evaluate(LSTM_Window.val)}
-# performance = {}
-# performance['Dense'] = LSTM_Model.evaluate(LSTM_Window.test, verbose=0)
+ModelEval = LSTM_Model.evaluate(LSTM_Window.val)
 
 # Generate and Plot a complete Evaluation window
 
-Label_Width = len(val_df)
-Input_Width = Label_Width
-Wide_LSTM_Window = WindowGenerator(train_df, val_df,
-                                   input_width=Input_Width,
-                                   label_width=Label_Width,
-                                   shift=1,
-                                   label_columns=['Data [Gb]'])
+Eval_Predictions = []
+for i in range(len(LSTM_Window.val_df) - Window_Size):
+    Eval_Input = LSTM_Window.val_df.values[i:Window_Size + i].reshape([1, -1, 1])
+    # print(Eval_Input)
+    Eval_Prediction = LSTM_Model.predict(Eval_Input)
+    Eval_Predictions.append(Eval_Prediction[0][0])
+Eval_Labels = LSTM_Window.val_df.values[Window_Size:]
+# print(Eval_Labels)
 
-# print('Input shape:', Wide_LSTM_Window.example[0].shape)
-# print('Output shape:', RNN_LSTM_Model(Wide_LSTM_Window.example[0]).shape)
-Wide_LSTM_Window.plot(LSTM_Model)
-####################################################
+plotFunction(Eval_Labels, Eval_Predictions, Window_Size, ModelEval)
+
+# performance = {}
+# performance['Dense'] = LSTM_Model.evaluate(LSTM_Window.test, verbose=0)

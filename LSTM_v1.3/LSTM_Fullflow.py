@@ -9,6 +9,8 @@ import os
 from pandas import DataFrame
 from matplotlib import pyplot as plt
 
+# from Print_Functions import plotFunction
+
 #####This is an example of full flow of:
 # load data -> generate window -> create model -> compile and fit
 
@@ -185,7 +187,7 @@ WindowGenerator.val = val
 # WindowGenerator.test = test
 WindowGenerator.example = example
 
-MAX_EPOCHS = 10
+MAX_EPOCHS = 1
 
 
 def compile_and_fit(model, window, patience=5):
@@ -203,16 +205,34 @@ def compile_and_fit(model, window, patience=5):
     return history
 
 
+def plotFunction(labels_array, predictions_array, window_length, model_eval):
+    Time = range(window_length, len(labels_array)+window_length)
+    print(Time)
+    plt.plot(Time, labels_array)
+    plt.plot(Time, predictions_array)
+    # ############# for debug:
+    # # plt.plot(raw_Test_values[:200])
+    # # plt.plot(predictions[:200])
+    # ##########################
+    plt.xlabel('Time [s]')
+    plt.ylabel('Data Volume [Gb]')
+    plt.grid()
+    plt.title('Data Volume over Time, ' + 'Evaluation Loss = ' + str(model_eval[0]) + 'MAE = ' + str(model_eval[1]))
+    plt.legend(['Validation dataset', 'Predictions'])
+    plt.show()
+
+
 # wide_window = WindowGenerator(input_width=24, label_width=24, shift=1, label_columns=['Data [Gb]'])
 
-Num_Neurons = 10
-LSTM_Window = WindowGenerator(input_width=Num_Neurons, label_width=1, shift=1, label_columns=['Data [Gb]'])
+Window_Size = 10
+LSTM_Window = WindowGenerator(input_width=Window_Size, label_width=1, shift=1, label_columns=['Data [Gb]'])
 print('Input shape = [batch, time, features]: ', LSTM_Window.example[0].shape)
 
 lstm_model = tf.keras.models.Sequential([
     # Shape [batch, time, features] => [batch, time, lstm_units]
     # tf.keras.layers.LSTM(32, return_sequences=True, batch_input_shape=LSTM_Window.example[0].shape, stateful=True),
-    tf.keras.layers.LSTM(units=Num_Neurons, batch_input_shape=LSTM_Window.example[0].shape, return_sequences=True, stateful=True),
+    tf.keras.layers.LSTM(units=Window_Size, batch_input_shape=LSTM_Window.example[0].shape, return_sequences=False,
+                         stateful=True),
     # tf.keras.layers.LSTM(units=Num_Neurons, batch_input_shape=LSTM_Window.example[0].shape, return_sequences=True),
     # tf.keras.layers.LSTM(units=32, return_sequences=True),
     # Shape => [batch, time, features]
@@ -226,11 +246,27 @@ print('Output shape:', lstm_model(LSTM_Window.example[0]).shape)
 
 History = compile_and_fit(lstm_model, LSTM_Window)
 
-PredictionsVal = lstm_model.predict(LSTM_Window.val_df.values[0:10])
-# PredictionsEval = lstm_model.evaluate(LSTM_Window.val)
-# PredictionsTrain = lstm_model.predict(LSTM_Window.train)
+# For print
+# Eval_Input_Example = LSTM_Window.val_df.values[0:10].reshape([1, -1, 1])
+# print(Eval_Input_Example.shape)
+# Prediction_Val_Example = lstm_model.predict(LSTM_Window.val_df.values[0:10].reshape([1, -1, 1]))
+# print(Prediction_Val_Example)
+ModelEval = lstm_model.evaluate(LSTM_Window.val)
+# print(PredictionsEval)
 
-LSTM_Window.plot(lstm_model)
+# Eval_Predictions = np.zeros(len(LSTM_Window.val_df) - Window_Size)
+Eval_Predictions = []
+for i in range(len(LSTM_Window.val_df) - Window_Size):
+    Eval_Input = LSTM_Window.val_df.values[i:Window_Size + i].reshape([1, -1, 1])
+    # print(Eval_Input)
+    Eval_Prediction = lstm_model.predict(Eval_Input)
+    Eval_Predictions.append(Eval_Prediction[0][0])
+Eval_Labels = LSTM_Window.val_df.values[Window_Size:]
+# print(Eval_Labels)
+plotFunction(Eval_Labels, Eval_Predictions, Window_Size, ModelEval)
+
+print('')
+# LSTM_Window.plot(lstm_model)
 
 #############For printing Only####################
 # Label_Width = len(val_df)
