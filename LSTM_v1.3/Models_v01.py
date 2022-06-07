@@ -107,14 +107,38 @@ def residual_lstm_multi_out(num_features):
     return model
 
 
-def deep_lstm_model():
+def deep_lstm_model(window_size):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
-        tf.keras.layers.LSTM(units=32, return_sequences=True),
-        tf.keras.layers.LSTM(units=32, return_sequences=True),
-        tf.keras.layers.LSTM(units=32, return_sequences=True),
-        tf.keras.layers.LSTM(units=32, return_sequences=True),
-        tf.keras.layers.LSTM(units=32, return_sequences=True),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                             stateful=False),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                             stateful=False),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                             stateful=False),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                             stateful=False),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=False,
+                             stateful=False),
+        # Shape => [batch, time, features]
+        tf.keras.layers.Dense(units=1)
+    ])
+    return model
+
+
+def deep_lstm_model_stateful(window_size, lstm_window_shape):
+    model = tf.keras.models.Sequential([
+        # Shape [batch, time, features] => [batch, time, lstm_units]
+        tf.keras.layers.LSTM(units=window_size, batch_input_shape=lstm_window_shape, return_sequences=True,
+                             stateful=True),
+        tf.keras.layers.LSTM(units=window_size, batch_input_shape=lstm_window_shape, return_sequences=True,
+                             stateful=True),
+        tf.keras.layers.LSTM(units=window_size, batch_input_shape=lstm_window_shape, return_sequences=True,
+                             stateful=True),
+        tf.keras.layers.LSTM(units=window_size, batch_input_shape=lstm_window_shape, return_sequences=True,
+                             stateful=True),
+        tf.keras.layers.LSTM(units=window_size, batch_input_shape=lstm_window_shape, return_sequences=False,
+                             stateful=True),
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=1)
     ])
@@ -149,4 +173,24 @@ def compile_and_fit(model, window, epochs, patience=5):
     history = model.fit(window.train, epochs=epochs,
                         validation_data=window.val,
                         callbacks=[early_stopping])
+    return history
+
+
+def compileModel(model):
+    model.compile(loss=tf.losses.MeanSquaredError(),
+                  optimizer=tf.optimizers.Adam(),
+                  metrics=[tf.metrics.MeanAbsoluteError()])
+
+    return model
+
+
+def fitModel(model, window, epochs, patience=5):
+    early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
+                                                      patience=patience,
+                                                      mode='min',
+                                                      verbose=1)
+    history = model.fit(window.train, epochs=epochs,
+                        validation_data=window.val,
+                        # callbacks=[early_stopping]
+                        )
     return history

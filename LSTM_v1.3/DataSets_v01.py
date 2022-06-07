@@ -6,111 +6,68 @@ from sklearn.preprocessing import MinMaxScaler
 import numpy as np
 import tensorflow as tf
 from matplotlib import pyplot as plt
+from pandas import read_csv
+import os
 
 
 # set of preprocessing functions for LSTM
-
-# date-time parsing function for loading the shampoo dataset
-# def parser(x):
-#     return datetime.strptime('190' + x, '%Y-%m')
-
-
-# frame a sequence as a supervised learning problem
-def timeseries_to_supervised(data, lag=1):
-    df = DataFrame(data)
-    columns = [df.shift(i) for i in range(1, lag + 1)]
-    columns.append(df)
-    df = concat(columns, axis=1)
-    df.fillna(0, inplace=True)
+# load data from .csv
+def loadData(data_file_csv):
+    dataSetRoot = r'../Dataset'
+    csv_data = read_csv(os.path.join(dataSetRoot, data_file_csv), header=0, index_col=0, squeeze=True)
+    df = DataFrame(csv_data)  # get data frame from csv
     return df
 
 
-# create a differenced series
-def difference(dataset, interval=1):
-    diff = list()
-    for i in range(interval, len(dataset)):
-        value = dataset[i] - dataset[i - interval]
-        diff.append(value)
-    return Series(diff)
+def splitData(df):
+    # Split the data to training and validation, testing will be from a separate set
+    n = len(df)
+    train_df = df[0:int(n * 0.9) - 1]
+    val_df = df[int(n * 0.9):]
+    return train_df, val_df
 
 
-# invert differenced value
-def inverse_difference(history, yhat, interval=1):
-    return yhat + history[-interval]
+# Zero Mean and scale the data
+def normAndScale(data_df):
+    # Zero-Mean the Data
+    data_mean = data_df.mean()
+    zero_mean_df = data_df - data_mean
+
+    # Normalize the data between [-1,1]
+    normed_df = zero_mean_df / zero_mean_df.abs().max()
+    return normed_df
 
 
-# scale train and test data to [-1, 1]
-def scale(train, test):
-    # fit scaler
-    scaler = MinMaxScaler(feature_range=(-1, 1))
-    scaler = scaler.fit(train)
-    # transform train
-    train = train.reshape(train.shape[0], train.shape[1])
-    train_scaled = scaler.transform(train)
-    # transform test
-    test = test.reshape(test.shape[0], test.shape[1])
-    test_scaled = scaler.transform(test)
-    return scaler, train_scaled, test_scaled
+# reverse Zero Mean and scale - Need to add
 
-
-#
-# def scaleTrain(train):
-#     # fit scaler
-#     scaler = MinMaxScaler(feature_range=(-1, 1))
-#     scaler = scaler.fit(train)
-#     # transform train
-#     train = train.reshape(train.shape[0], train.shape[1])
-#     train_scaled = scaler.transform(train)
-#     return scaler, train_scaled
-#
-#
-# def scaleTest(test):
-#     # fit scaler
-#     scaler = MinMaxScaler(feature_range=(-1, 1))
-#     scaler = scaler.fit(test)
-#     # transform train
-#     test = test.reshape(test.shape[0], test.shape[1])
-#     test_scaled = scaler.transform(test)
-#     return scaler, test_scaled
-
-
-def scale_uni(data):
-    # fit scaler
-    scaler = MinMaxScaler(feature_range=(-1, 1))
-    scaler = scaler.fit(data)
-    # transform data
-    data = data.reshape(data.shape[0], data.shape[1])
-    data_scaled = scaler.transform(data)
-    return scaler, data_scaled
-
-
-# inverse scaling for a forecasted value
-def invert_scale(scaler, X, value):
-    new_row = [x for x in X] + [value]
-    array = np.array(new_row)
-    array = array.reshape(1, len(array))
-    inverted = scaler.inverse_transform(array)
-    return inverted[0, -1]
+def generateWindow(window_size, train_df, val_df, test_df):
+    # window size effectively determines the size of the sliding window, and the number of processing units in lstm
+    window = WindowGenerator(train_df, val_df, test_df,
+                             input_width=window_size,
+                             label_width=1,
+                             shift=1,
+                             label_columns=['Data [Gb]'])
+    return window
 
 
 class WindowGenerator:
     # def __init__(self, input_width, label_width, shift,
     #              train_df=train_df, val_df=val_df, test_df=test_df,
     #              label_columns=None):
-    def __init__(self, train_df, val_df, input_width, label_width, shift, label_columns=None):
+    def __init__(self, train_df, val_df, test_df, input_width, label_width, shift, label_columns=None):
         # Store the raw data.
         self.train_df = train_df
         self.val_df = val_df
-        # self.test_df = test_df
+        self.test_df = test_df
 
         # Work out the label column indices.
         self.label_columns = label_columns
         if label_columns is not None:
             self.label_columns_indices = {name: i for i, name in
                                           enumerate(label_columns)}
-        self.column_indices = {name: i for i, name in
-                               enumerate(train_df.columns)}
-        # self.column_indices = {train_df.name: 0}  # for a 1 dimensional dataset
+        # self.column_indices = {name: i for i, name in
+        #                        enumerate(train_df.columns)}
+        self.column_indices = {label_columns[0]: 0}  # for a 1 dimensional dataset
 
         # Work out the window parameters.
         self.input_width = input_width
@@ -150,44 +107,44 @@ def split_window(self, features):
     return inputs, labels
 
 
-def plot(self, model=None, plot_col='Data [Gb]', max_subplots=1):
-    inputs, labels = self.example
-    plt.figure(figsize=(12, 8))
-    if plot_col is not None:
-        plot_col_index = self.column_indices[plot_col]
-    else:
-        plot_col_index = self.column_indices[0]
-    max_n = min(max_subplots, len(inputs))
-    for n in range(max_n):
-        plt.subplot(max_n, 1, n + 1)
-        plt.ylabel(f'{plot_col} [normed]')
-        plt.plot(self.input_indices, inputs[n, :, plot_col_index],
-                 label='Inputs', marker='.', zorder=-10)
+# def plot(self, model=None, plot_col='Data [Gb]', max_subplots=1):
+#     inputs, labels = self.example
+#     plt.figure(figsize=(12, 8))
+#     if plot_col is not None:
+#         plot_col_index = self.column_indices[plot_col]
+#     else:
+#         plot_col_index = self.column_indices[0]
+#     max_n = min(max_subplots, len(inputs))
+#     for n in range(max_n):
+#         plt.subplot(max_n, 1, n + 1)
+#         plt.ylabel(f'{plot_col} [normed]')
+#         plt.plot(self.input_indices, inputs[n, :, plot_col_index],
+#                  label='Inputs', marker='.', zorder=-10)
+#
+#         if self.label_columns:
+#             label_col_index = self.label_columns_indices.get(plot_col, None)
+#         else:
+#             label_col_index = plot_col_index
+#
+#         if label_col_index is None:
+#             continue
+#
+#         plt.scatter(self.label_indices, labels[n, :, label_col_index],
+#                     edgecolors='k', label='Labels', c='#2ca02c', s=64)
+#         if model is not None:
+#             predictions = model(inputs)
+#             plt.scatter(self.label_indices, predictions[n, :, label_col_index],
+#                         marker='X', edgecolors='k', label='Predictions',
+#                         c='#ff7f0e', s=64)
+#
+#         if n == 0:
+#             plt.legend()
+#
+#     plt.xlabel('Time [sec]')
+#     plt.grid()
+#     plt.show()
 
-        if self.label_columns:
-            label_col_index = self.label_columns_indices.get(plot_col, None)
-        else:
-            label_col_index = plot_col_index
-
-        if label_col_index is None:
-            continue
-
-        plt.scatter(self.label_indices, labels[n, :, label_col_index],
-                    edgecolors='k', label='Labels', c='#2ca02c', s=64)
-        if model is not None:
-            predictions = model(inputs)
-            plt.scatter(self.label_indices, predictions[n, :, label_col_index],
-                        marker='X', edgecolors='k', label='Predictions',
-                        c='#ff7f0e', s=64)
-
-        if n == 0:
-            plt.legend()
-
-    plt.xlabel('Time [sec]')
-    plt.grid()
-    plt.show()
-
-
+# create dataset object
 def make_dataset(self, data):
     data = np.array(data, dtype=np.float32)
     ds = tf.keras.utils.timeseries_dataset_from_array(
@@ -197,7 +154,7 @@ def make_dataset(self, data):
         sequence_stride=1,
         shuffle=False,
         batch_size=1, )
-        # batch_size=32, )
+    # batch_size=32, )
 
     ds = ds.map(self.split_window)
 
@@ -232,9 +189,9 @@ def example(self):
 
 
 WindowGenerator.split_window = split_window
-WindowGenerator.plot = plot
+# WindowGenerator.plot = plot
 WindowGenerator.make_dataset = make_dataset
 WindowGenerator.train = train
 WindowGenerator.val = val
-# WindowGenerator.test = test
+WindowGenerator.test = test
 WindowGenerator.example = example

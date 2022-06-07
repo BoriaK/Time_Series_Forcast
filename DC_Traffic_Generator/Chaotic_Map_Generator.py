@@ -16,7 +16,7 @@ vals = rng.uniform(0.01, 1, 1)
 x_0 = vals.astype(float)
 x = [x_0]
 
-N = 100000  # number of samples in dataset
+N = 1000  # number of samples in dataset
 Time = np.arange(N)
 
 for i in range(0, N):
@@ -28,13 +28,12 @@ for i in range(0, N):
     # print(x_nxt)
     x.append(x_nxt)
 
-x = x[1:]
-y = np.array(x) * 10  # upscale the data to be in range 0:10
-# y = [i * 10 for i in x]
+x = x[1:]  # unscaled data [0,1)
+# y = np.array(x) * 10  # upscale the data to be in range 0:10
 
 # print out the last 1000 samples
 plt.figure()
-plt.plot(Time[-1000:], y[-1000:])
+plt.plot(Time[-1000:], x[-1000:])
 plt.xlabel('Time [s]')
 plt.ylabel('Data Volume [Gb]')
 plt.grid()
@@ -43,16 +42,17 @@ plt.show()
 
 # save data as .csv
 
-# dataSetRoot = r'.\Dataset'
-#
-# header = ['Time [s]', 'Data [Gb]']
+dataSetRoot = r'..\Dataset'
+
+header = ['Time [s]', 'Data [Gb]']
 # yy = y.squeeze()
-# arr = np.stack((Time, yy), axis=1)
-# with open(os.path.join(dataSetRoot, 'Traffic_Data_'+str(int(N / 1000))+'k.csv'), 'w', encoding='UTF8', newline='') as f:
-#     writer = csv.writer(f)
-#
-#     # write the header
-#     writer.writerow(header)
-#
-#     # write multiple rows
-#     writer.writerows(arr)
+xx = np.array(x).squeeze()
+arr = np.stack((Time, xx), axis=1)
+with open(os.path.join(dataSetRoot, 'Traffic_Data_'+str(int(N / 1000))+'k.csv'), 'w', encoding='UTF8', newline='') as f:
+    writer = csv.writer(f)
+
+    # write the header
+    writer.writerow(header)
+
+    # write multiple rows
+    writer.writerows(arr)
