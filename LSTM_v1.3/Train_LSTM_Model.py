@@ -10,7 +10,7 @@ from Models_v01 import compileModel
 from Models_v01 import fitModel
 
 # load the dataset
-DF = loadData('Traffic_Data_10k.csv')
+DF = loadData('Traffic_Data_1k.csv')
 
 Train_DF, Val_DF = splitData(DF)
 
@@ -22,7 +22,7 @@ Normed_Val_DF = zeroMean(Val_DF)
 Window_Size = 10
 LSTM_Window = generateWindow(Window_Size, Normed_Train_DF, Normed_Val_DF, test_df=None)
 
-Max_Epochs = 50
+Max_Epochs = 10
 
 # Version1: use lstm model with stateful=False (can release constraint about model input shape)
 LSTM_Model = lstm_model(Window_Size)
