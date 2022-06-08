@@ -1,13 +1,13 @@
 import os
+import matplotlib.pyplot as plt
 from DataSets_v01 import loadData
 from DataSets_v01 import splitData
 from DataSets_v01 import normAndScale
 from DataSets_v01 import zeroMean
 from DataSets_v01 import generateWindow
-from Models_v01 import deep_lstm_model
+from Models_v01 import lstm_model
 from Models_v01 import compileModel
 from Models_v01 import fitModel
-import matplotlib.pyplot as plt
 
 # load the dataset
 DF = loadData('Traffic_Data_10k.csv')
@@ -25,9 +25,9 @@ LSTM_Window = generateWindow(Window_Size, Normed_Train_DF, Normed_Val_DF, test_d
 Max_Epochs = 50
 
 # Version1: use lstm model with stateful=False (can release constraint about model input shape)
-Deep_LSTM_Model = deep_lstm_model(Window_Size)
-Deep_LSTM_Model = compileModel(Deep_LSTM_Model)
-History = fitModel(Deep_LSTM_Model, LSTM_Window, epochs=Max_Epochs)
+LSTM_Model = lstm_model(Window_Size)
+LSTM_Model = compileModel(LSTM_Model)
+History = fitModel(LSTM_Model, LSTM_Window, epochs=Max_Epochs)
 
 Train_Loss = History.history['loss']
 Train_MAE = History.history['mean_absolute_error']
@@ -48,13 +48,11 @@ plt.xlabel('Epochs')
 plt.ylabel('MAE')
 plt.legend(['Training MAE', 'Validation MAE'])
 plt.grid()
-plt.savefig('./Result_Plots/' + 'Deep_LSTM_Model ' + '10k samples ' + str(Max_Epochs) + '_epochs.png', bbox_inches='tight')
+plt.savefig('./Result_Plots/' + 'LSTM_Model ' + '10k samples ' + str(Max_Epochs) + '_epochs.png', bbox_inches='tight')
 # plt.show()
-
 
 # save checkpoint
 checkpoint_filepath = r'./Checkpoints'
-CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_' + '10k samples ' + str(Max_Epochs) + '_epochs_Deep_LSTM_Model')
-Deep_LSTM_Model.save(CheckPoint)
-print('checkpoint ' + '5x10_' + '10k samples ' + str(Max_Epochs) + '_epochs_Deep_LSTM_Model' + ' is saved')
-
+CheckPoint = os.path.join(checkpoint_filepath, 'cp_1x10_' + '10k samples ' + str(Max_Epochs) + '_epochs_LSTM_Model')
+LSTM_Model.save(CheckPoint)
+print('checkpoint ' + '1x10_' + '10k samples ' + str(Max_Epochs) + '_epochs_LSTM_Model' + ' is saved')

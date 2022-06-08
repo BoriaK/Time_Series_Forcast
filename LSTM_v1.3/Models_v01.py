@@ -70,8 +70,19 @@ def conv_model(conv_width):
     return model
 
 
+def lstm_model(window_size):
+    model = tf.keras.models.Sequential([
+        # Shape [batch, time, features] => [batch, time, lstm_units]
+        tf.keras.layers.LSTM(units=window_size, return_sequences=False,
+                             stateful=False),
+        # Shape => [batch, time, features]
+        tf.keras.layers.Dense(units=1)
+    ])
+    return model
+
+
 # batch_input_shape=
-def lstm_model(window_size, lstm_window_shape):
+def lstm_model_stateful(window_size, lstm_window_shape):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
         tf.keras.layers.LSTM(units=window_size, batch_input_shape=lstm_window_shape, return_sequences=False,
@@ -184,7 +195,7 @@ def compileModel(model):
     return model
 
 
-def fitModel(model, window, epochs, patience=5):
+def fitModel(model, window, epochs, patience=3):
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                       patience=patience,
                                                       mode='min',

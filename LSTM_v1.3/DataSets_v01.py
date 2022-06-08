@@ -38,6 +38,14 @@ def normAndScale(data_df):
     return normed_df
 
 
+# Zero Mean the data
+def zeroMean(data_df):
+    # Zero-Mean the Data
+    data_mean = data_df.mean()
+    zero_mean_df = data_df - data_mean
+
+    return zero_mean_df
+
 # reverse Zero Mean and scale - Need to add
 
 def generateWindow(window_size, train_df, val_df, test_df):

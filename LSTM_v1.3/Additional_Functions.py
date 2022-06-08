@@ -9,7 +9,7 @@ def makePredictionsAndLabels(model, window, w_size):
         eval_prediction = model.predict(eval_input)
         eval_predictions.append(eval_prediction[0][0])
     eval_labels = window.val_df.values[w_size:]
-    return eval_predictions, eval_labels
+    return eval_labels, eval_predictions
 
 
 def makePredictionsAndLabelsTest(model, window, w_size):
@@ -20,7 +20,7 @@ def makePredictionsAndLabelsTest(model, window, w_size):
         test_prediction = model.predict(test_input)
         test_predictions.append(test_prediction[0][0])
     test_labels = window.test_df.values[w_size:]
-    return test_predictions, test_labels
+    return test_labels, test_predictions
 
 
 def plotFunction(labels_array, predictions_array, window_length, model_eval, model_name, num_epochs):
