@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 # Loads the pre-trained model
 checkpoint_filepath = r'./Checkpoints'
-CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_10k samples 50_epochs_Deep_LSTM_Model')
+CheckPoint = os.path.join(checkpoint_filepath, 'cp_5x10_1k_samples_Random_Data_5000_epochs_Deep_LSTM_Model')
 LSTM_Model = tf.keras.models.load_model(CheckPoint)
 
 # load the dataset
@@ -24,7 +24,7 @@ Train_DF, Val_DF = splitData(DF)
 Normed_Train_DF = zeroMean(Train_DF)
 Normed_Val_DF = zeroMean(Val_DF)
 
-Window_Size = 10
+Window_Size = 16
 LSTM_Window = generateWindow(Window_Size, Normed_Train_DF, Normed_Val_DF, test_df=None)
 
 # Generate Predictions and Labels Array
@@ -32,5 +32,5 @@ Eval_Labels, Eval_Predictions = makePredictionsAndLabels(LSTM_Model, LSTM_Window
 
 # plot and compare the models
 ModelEval = LSTM_Model.evaluate(LSTM_Window.val)
-Max_Epochs = 50
+Max_Epochs = 5000
 plotFunction(Eval_Labels, Eval_Predictions, Window_Size, ModelEval, 'Deep_LSTM_Model', Max_Epochs)
