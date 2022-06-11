@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 from DataSets_v01 import splitData
 from DataSets_v01 import zeroMean
 from DataSets_v01 import generateWindow
-from Models_v01 import deep_lstm_model
+from Models_v01 import residual_lstm
 from Models_v01 import compileModel
 from Models_v01 import fitModel
 import numpy as np
@@ -17,8 +17,8 @@ from pandas import DataFrame
 
 
 Window_Size = 16
-Deep_LSTM_Model = deep_lstm_model(Window_Size)
-Deep_LSTM_Model = compileModel(Deep_LSTM_Model)
+Residual_LSTM_Model = residual_lstm(Window_Size)
+Residual_LSTM_Model = compileModel(Residual_LSTM_Model)
 
 Max_Epochs = 5000
 
@@ -44,7 +44,7 @@ for i in range(Max_Epochs):
 
     LSTM_Window = generateWindow(Window_Size, Normed_Train_DF, Normed_Val_DF, test_df=None)
 
-    History = fitModel(Deep_LSTM_Model, LSTM_Window, epochs=1)
+    History = fitModel(Residual_LSTM_Model, LSTM_Window, epochs=1)
     train_loss = History.history['loss'][0]
     train_mae = History.history['mean_absolute_error'][0]
     validation_loss = History.history['val_loss'][0]
@@ -61,11 +61,12 @@ for i in range(Max_Epochs):
         CheckPoint = os.path.join(checkpoint_filepath,
                                   'cp_5x10_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
-                                      i + 1) + '_epochs_Deep_LSTM_Model')
-        Deep_LSTM_Model.save(CheckPoint)
+                                      i + 1) + '_epochs_Residual_LSTM_Model')
+        Residual_LSTM_Model.save(CheckPoint)
         print(
-            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
-                i + 1) + ' epochs Deep_LSTM_Model' + ' is saved')
+            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
+                Window_Size) + ' ' + str(
+                i + 1) + ' epochs _Residual_LSTM_Model' + ' is saved')
     elif validation_mae <= np.amin(Validation_MAE):
         # Save Best checkpoint:
         # remove last saved checkpoint:
@@ -74,21 +75,23 @@ for i in range(Max_Epochs):
         CheckPoint = os.path.join(checkpoint_filepath,
                                   'cp_5x10_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
-                                      i + 1) + '_epochs_Deep_LSTM_Model')
-        Deep_LSTM_Model.save(CheckPoint)
+                                      i + 1) + '_epochs_Residual_LSTM_Model')
+        Residual_LSTM_Model.save(CheckPoint)
         print(
-            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
-                i + 1) + ' epochs Deep_LSTM_Model' + ' is saved')
+            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
+                Window_Size) + ' ' + str(
+                i + 1) + ' epochs _Residual_LSTM_Model' + ' is saved')
     elif i == Max_Epochs - 1:
         # Save the last checkpoint:
         CheckPoint = os.path.join(checkpoint_filepath,
                                   'cp_5x10_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
-                                      i + 1) + '_epochs_Deep_LSTM_Model')
-        Deep_LSTM_Model.save(CheckPoint)
+                                      i + 1) + '_epochs_Residual_LSTM_Model')
+        Residual_LSTM_Model.save(CheckPoint)
         print(
-            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
-                i + 1) + ' epochs Deep_LSTM_Model' + ' is saved')
+            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
+                Window_Size) + ' ' + str(
+                i + 1) + ' epochs _Residual_LSTM_Model' + ' is saved')
 
 plt.subplot(2, 1, 1)
 plt.plot(Train_Loss)
@@ -105,7 +108,7 @@ plt.ylabel('MAE')
 plt.legend(['Training MAE', 'Validation MAE'])
 plt.grid()
 plt.savefig(
-    './Result_Plots/' + 'Deep_LSTM_Model_1k_samples_Random_Data_w_' + str(Window_Size) + '_' + str(
+    './Result_Plots/' + 'Residual_LSTM_Model_1k_samples_Random_Data_w_' + str(Window_Size) + '_' + str(
         i + 1) + '_epochs.png',
     bbox_inches='tight')
 plt.show()

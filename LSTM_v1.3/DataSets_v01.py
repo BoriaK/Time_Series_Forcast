@@ -47,6 +47,7 @@ def zeroMean(data_df):
 
     return zero_mean_df
 
+
 # reverse Zero Mean and scale - Need to add
 
 def generateWindow(window_size, train_df, val_df, test_df):

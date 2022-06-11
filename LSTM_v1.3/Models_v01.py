@@ -70,6 +70,18 @@ def conv_model(conv_width):
     return model
 
 
+def deep_conv_model(conv_width):
+    model = tf.keras.Sequential([
+        tf.keras.layers.Conv1D(filters=32,
+                               kernel_size=(conv_width,),
+                               activation='relu'),
+        tf.keras.layers.MaxPooling1D(pool_size=2),
+        tf.keras.layers.Dense(units=32, activation='relu'),
+        tf.keras.layers.Dense(units=1),
+    ])
+    return model
+
+
 def lstm_model(window_size):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
@@ -78,6 +90,48 @@ def lstm_model(window_size):
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=1)
     ])
+    return model
+
+
+def cnn_lstm(window_size):
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv1D(filters=32,
+                               kernel_size=(window_size,),
+                               activation='relu'),
+        tf.keras.layers.MaxPooling1D(pool_size=1),
+        # tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten()),
+        tf.keras.layers.Dense(units=32, activation='relu'),
+        # Shape [batch, time, features] => [batch, time, lstm_units]
+        tf.keras.layers.LSTM(units=window_size, return_sequences=False,
+                             stateful=False),
+        # Shape => [batch, time, features]
+        tf.keras.layers.Dense(units=1)
+    ])
+
+    return model
+
+
+def cnn_deep_lstm(window_size):
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv1D(filters=32,
+                               kernel_size=(window_size,),
+                               activation='relu'),
+        tf.keras.layers.MaxPooling1D(pool_size=1),
+        # tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten()),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                             stateful=False),
+        # tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        #                      stateful=False),
+        # tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        #                      stateful=False),
+        # tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        #                      stateful=False),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=False,
+                             stateful=False),
+        # Shape => [batch, time, features]
+        tf.keras.layers.Dense(units=1)
+    ])
+
     return model
 
 
@@ -102,19 +156,6 @@ def lstm_model_multi_out(num_features):
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=num_features)
     ])
-    return model
-
-
-def residual_lstm_multi_out(num_features):
-    model = ResidualWrapper(
-        tf.keras.Sequential([
-            tf.keras.layers.LSTM(32, return_sequences=True),
-            tf.keras.layers.Dense(
-                num_features,
-                # The predicted deltas should start small.
-                # Therefore, initialize the output layer with zeros.
-                kernel_initializer=tf.initializers.zeros())
-        ]))
     return model
 
 
@@ -168,6 +209,56 @@ class ResidualWrapper(tf.keras.Model):
         # from the previous time step plus the delta
         # calculated by the model.
         return inputs + delta
+
+
+def residual_lstm(window_size):
+    model = ResidualWrapper(
+        tf.keras.Sequential([
+            tf.keras.layers.LSTM(units=window_size, return_sequences=True),
+            tf.keras.layers.Dense(
+                units=1,
+                # The predicted deltas should start small.
+                # Therefore, initialize the output layer with zeros.
+                kernel_initializer=tf.initializers.zeros())
+        ]))
+    return model
+
+
+def residual_deep_lstm_model(window_size):
+    model = ResidualWrapper(
+        tf.keras.Sequential([
+            # Shape [batch, time, features] => [batch, time, lstm_units]
+            tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                                 stateful=False),
+            tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                                 stateful=False),
+            tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                                 stateful=False),
+            tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                                 stateful=False),
+            tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                                 stateful=False),
+            # Shape => [batch, time, features]
+            tf.keras.layers.Dense(
+                units=1,
+                # The predicted deltas should start small.
+                # Therefore, initialize the output layer with zeros.
+                kernel_initializer=tf.initializers.zeros())
+        ]))
+    return model
+
+
+def residual_lstm_multi_out(num_features):
+    model = ResidualWrapper(
+        tf.keras.Sequential([
+            tf.keras.layers.LSTM(32, return_sequences=True),
+            tf.keras.layers.Dense(
+                num_features,
+                # The predicted deltas should start small.
+                # Therefore, initialize the output layer with zeros.
+                kernel_initializer=tf.initializers.zeros())
+        ]))
+    return model
 
 
 # Operational functions

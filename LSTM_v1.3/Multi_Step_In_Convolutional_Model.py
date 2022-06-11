@@ -28,8 +28,8 @@ val_df = (val_df - train_mean) / train_std
 # test_df = (test_df - train_mean) / train_std
 
 
-Conv_Width = 3  # effectively determines the size of the sliding window
-Conv_Window = WindowGenerator(train_df, val_df,
+Conv_Width = 16  # effectively determines the size of the sliding window
+Conv_Window = WindowGenerator(train_df, val_df, test_df=None,
                               input_width=Conv_Width,
                               label_width=1,
                               shift=1,
