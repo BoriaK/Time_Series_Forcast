@@ -2,8 +2,8 @@ import os
 import matplotlib.pyplot as plt
 from DataSets_v01 import splitData
 from DataSets_v01 import zeroMean
-from DataSets_v01 import generateWindow
-from Models_v01 import lstm_model
+from DataSets_v01 import generateMultistepWindow
+from Models_v01 import FeedBack
 from Models_v01 import compileModel
 from Models_v01 import fitModel
 import numpy as np
@@ -15,10 +15,12 @@ from pandas import DataFrame
 # for training use the same loop as in "stateful" model,
 # generate a NEW instance of the data set each iteration (Epoch)
 
-
+# in this method will need to generate a window with 8 time steps forcast (ahead)
+OUT_STEPS = 8
 Window_Size = 16
-LSTM_Model = lstm_model(Window_Size)
-LSTM_Model = compileModel(LSTM_Model)
+FeedBack_Model = FeedBack(units=Window_Size, out_steps=OUT_STEPS)
+# FeedBack_Model = FeedBack(units=32, out_steps=1)
+FeedBack_Model = compileModel(FeedBack_Model)
 
 Max_Epochs = 5000
 
@@ -42,9 +44,10 @@ for i in range(Max_Epochs):
     Normed_Train_DF = zeroMean(Train_DF)
     Normed_Val_DF = zeroMean(Val_DF)
 
-    LSTM_Window = generateWindow(Window_Size, Normed_Train_DF, Normed_Val_DF, test_df=None)
+    Multi_Window = generateMultistepWindow(Window_Size, OUT_STEPS, Normed_Train_DF, Normed_Val_DF, test_df=None)
+    # print(Multi_Window)
 
-    History = fitModel(LSTM_Model, LSTM_Window, epochs=1)
+    History = fitModel(FeedBack_Model, Multi_Window, epochs=1)
     train_loss = History.history['loss'][0]
     train_mae = History.history['mean_absolute_error'][0]
     validation_loss = History.history['val_loss'][0]
@@ -61,12 +64,12 @@ for i in range(Max_Epochs):
         CheckPoint = os.path.join(checkpoint_filepath,
                                   'Batch_32_1x16_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
-                                      i + 1) + '_epochs_LSTM_Model')
-        LSTM_Model.save(CheckPoint)
+                                      i + 1) + '_epochs_FeedBack_Model')
+        FeedBack_Model.save(CheckPoint)
         print(
             'checkpoint ' + '1x16 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                 Window_Size) + ' ' + str(
-                i + 1) + ' epochs LSTM_Model' + ' is saved')
+                i + 1) + ' epochs FeedBack_Model' + ' is saved')
     elif validation_mae <= np.amin(Validation_MAE):
         # Save Best checkpoint:
         # remove last saved checkpoint:
@@ -75,23 +78,23 @@ for i in range(Max_Epochs):
         CheckPoint = os.path.join(checkpoint_filepath,
                                   'Batch_32_1x16_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
-                                      i + 1) + '_epochs_LSTM_Model')
-        LSTM_Model.save(CheckPoint)
+                                      i + 1) + '_epochs_FeedBack_Model')
+        FeedBack_Model.save(CheckPoint)
         print(
             'checkpoint ' + '1x16 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                 Window_Size) + ' ' + str(
-                i + 1) + ' epochs LSTM_Model' + ' is saved')
+                i + 1) + ' epochs FeedBack_Model' + ' is saved')
     elif i == Max_Epochs - 1:
         # Save the last checkpoint:
         CheckPoint = os.path.join(checkpoint_filepath,
                                   'Batch_32_1x16_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
-                                      i + 1) + '_epochs_LSTM_Model')
-        LSTM_Model.save(CheckPoint)
+                                      i + 1) + '_epochs_FeedBack_Model')
+        FeedBack_Model.save(CheckPoint)
         print(
             'checkpoint ' + '1x16 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                 Window_Size) + ' ' + str(
-                i + 1) + ' epochs LSTM_Model' + ' is saved')
+                i + 1) + ' epochs FeedBack_Model' + ' is saved')
 
 plt.subplot(2, 1, 1)
 plt.plot(Train_Loss)
@@ -108,7 +111,8 @@ plt.ylabel('MAE')
 plt.legend(['Training MAE', 'Validation MAE'])
 plt.grid()
 plt.savefig(
-    './Result_Plots/Training_Process/' + 'Batch_32_1x16_LSTM_Model_1k_samples_Random_Data_w_' + str(Window_Size) + '_' + str(
+    './Result_Plots/Training_Process/' + 'Batch_32_1x16_FeedBack_Model_1k_samples_Random_Data_w_' + str(
+        Window_Size) + '_' + str(
         i + 1) + '_epochs.png',
     bbox_inches='tight')
 plt.show()

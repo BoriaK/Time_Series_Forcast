@@ -14,8 +14,6 @@ DF = loadData('Traffic_Data_1k.csv')
 
 Train_DF, Val_DF = splitData(DF)
 
-# Normed_Train_DF = normAndScale(Train_DF)
-# Normed_Val_DF = normAndScale(Val_DF)
 Normed_Train_DF = zeroMean(Train_DF)
 Normed_Val_DF = zeroMean(Val_DF)
 

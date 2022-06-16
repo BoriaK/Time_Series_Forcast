@@ -59,12 +59,12 @@ for i in range(Max_Epochs):
     if i == 0:
         # Save the 1st checkpoint:
         CheckPoint = os.path.join(checkpoint_filepath,
-                                  'cp_5x10_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
+                                  'Batch_32_5x16_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
                                       i + 1) + '_epochs_Deep_LSTM_Model')
         Deep_LSTM_Model.save(CheckPoint)
         print(
-            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
+            'checkpoint ' + '5x16 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
                 i + 1) + ' epochs Deep_LSTM_Model' + ' is saved')
     elif validation_mae <= np.amin(Validation_MAE):
         # Save Best checkpoint:
@@ -72,22 +72,22 @@ for i in range(Max_Epochs):
         shutil.rmtree(CheckPoint, ignore_errors=True)
         print("Deleted '%s' directory successfully" % CheckPoint)
         CheckPoint = os.path.join(checkpoint_filepath,
-                                  'cp_5x10_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
+                                  'Batch_32_5x16_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
                                       i + 1) + '_epochs_Deep_LSTM_Model')
         Deep_LSTM_Model.save(CheckPoint)
         print(
-            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
+            'checkpoint ' + '5x16 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
                 i + 1) + ' epochs Deep_LSTM_Model' + ' is saved')
     elif i == Max_Epochs - 1:
         # Save the last checkpoint:
         CheckPoint = os.path.join(checkpoint_filepath,
-                                  'cp_5x10_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
+                                  'Batch_32_5x16_' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(
                                       Window_Size) + '_' + str(
                                       i + 1) + '_epochs_Deep_LSTM_Model')
         Deep_LSTM_Model.save(CheckPoint)
         print(
-            'checkpoint ' + '5x10 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
+            'checkpoint ' + '5x16 ' + str(int(len(Data) / 1000)) + 'k_samples_Random_Data_w_' + str(Window_Size) + ' ' + str(
                 i + 1) + ' epochs Deep_LSTM_Model' + ' is saved')
 
 plt.subplot(2, 1, 1)
@@ -105,7 +105,7 @@ plt.ylabel('MAE')
 plt.legend(['Training MAE', 'Validation MAE'])
 plt.grid()
 plt.savefig(
-    './Result_Plots/' + 'Deep_LSTM_Model_1k_samples_Random_Data_w_' + str(Window_Size) + '_' + str(
+    './Result_Plots/Training_Process/' + 'Batch_32_5x16_Deep_LSTM_Model_1k_samples_Random_Data_w_' + str(Window_Size) + '_' + str(
         i + 1) + '_epochs.png',
     bbox_inches='tight')
 plt.show()

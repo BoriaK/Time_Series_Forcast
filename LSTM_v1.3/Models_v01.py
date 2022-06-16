@@ -70,12 +70,21 @@ def conv_model(conv_width):
     return model
 
 
+# The resulting output, when using the "valid" padding option, has a shape of: output_shape = (input_shape - pool_size + 1) / strides)
+# The resulting output shape when using the "same" padding option is: output_shape = input_shape / strides
 def deep_conv_model(conv_width):
     model = tf.keras.Sequential([
+        tf.keras.layers.Conv1D(filters=64,
+                               kernel_size=(conv_width,),
+                               activation='relu'),
+        # tf.keras.layers.BatchNormalization(axis=-1,),
+        # tf.keras.layers.MaxPooling1D(pool_size=2, strides=1, padding='same'),
+        # tf.keras.layers.MaxPooling1D(pool_size=1),
         tf.keras.layers.Conv1D(filters=32,
                                kernel_size=(conv_width,),
                                activation='relu'),
-        tf.keras.layers.MaxPooling1D(pool_size=2),
+        # tf.keras.layers.BatchNormalization(axis=-1,),
+        # tf.keras.layers.MaxPooling1D(pool_size=1),
         tf.keras.layers.Dense(units=32, activation='relu'),
         tf.keras.layers.Dense(units=1),
     ])
@@ -120,12 +129,12 @@ def cnn_deep_lstm(window_size):
         # tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten()),
         tf.keras.layers.LSTM(units=window_size, return_sequences=True,
                              stateful=False),
-        # tf.keras.layers.LSTM(units=window_size, return_sequences=True,
-        #                      stateful=False),
-        # tf.keras.layers.LSTM(units=window_size, return_sequences=True,
-        #                      stateful=False),
-        # tf.keras.layers.LSTM(units=window_size, return_sequences=True,
-        #                      stateful=False),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                             stateful=False),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                             stateful=False),
+        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+                             stateful=False),
         tf.keras.layers.LSTM(units=window_size, return_sequences=False,
                              stateful=False),
         # Shape => [batch, time, features]
@@ -259,6 +268,75 @@ def residual_lstm_multi_out(num_features):
                 kernel_initializer=tf.initializers.zeros())
         ]))
     return model
+
+
+def multi_linear_model(out_steps, num_features):
+    model = tf.keras.Sequential([
+        # Take the last time-step.
+        # Shape [batch, time, features] => [batch, 1, features]
+        tf.keras.layers.Lambda(lambda x: x[:, -1:, :]),
+        # Shape => [batch, 1, out_steps*features]
+        tf.keras.layers.Dense(out_steps * num_features,
+                              kernel_initializer=tf.initializers.zeros()),
+        # Shape => [batch, out_steps, features]
+        tf.keras.layers.Reshape([out_steps, num_features])
+    ])
+    return model
+
+
+class FeedBack(tf.keras.Model):
+    def __init__(self, units, out_steps):
+        super().__init__()
+        self.out_steps = out_steps
+        self.units = units
+        self.lstm_cell = tf.keras.layers.LSTMCell(units)
+        # Also wrap the LSTMCell in an RNN to simplify the `warmup` method.
+        self.lstm_rnn = tf.keras.layers.RNN(self.lstm_cell, return_state=True)
+        self.dense = tf.keras.layers.Dense(units=1)
+
+
+def call(self, inputs, training=None):
+    # Use a TensorArray to capture dynamically unrolled outputs.
+    predictions = []
+    # Initialize the LSTM state.
+    prediction, state = self.warmup(inputs)
+
+    # Insert the first prediction.
+    predictions.append(prediction)
+
+    # Run the rest of the prediction steps.
+    for n in range(1, self.out_steps):
+        # Use the last prediction as input.
+        x = prediction
+        # Execute one lstm step.
+        x, state = self.lstm_cell(x, states=state,
+                                  training=training)
+        # Convert the lstm output to a prediction.
+        prediction = self.dense(x)
+        # Add the prediction to the output.
+        predictions.append(prediction)
+
+    # predictions.shape => (time, batch, features)
+    predictions = tf.stack(predictions)
+    # predictions.shape => (batch, time, features)
+    predictions = tf.transpose(predictions, [1, 0, 2])
+    return predictions
+
+
+FeedBack.call = call
+
+
+def warmup(self, inputs):
+    # inputs.shape => (batch, time, features)
+    # x.shape => (batch, lstm_units)
+    x, *state = self.lstm_rnn(inputs)
+
+    # predictions.shape => (batch, features)
+    prediction = self.dense(x)
+    return prediction, state
+
+
+FeedBack.warmup = warmup
 
 
 # Operational functions

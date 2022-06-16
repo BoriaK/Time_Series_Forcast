@@ -60,6 +60,16 @@ def generateWindow(window_size, train_df, val_df, test_df):
     return window
 
 
+def generateMultistepWindow(window_size, predictions_size, train_df, val_df, test_df):
+    # window size effectively determines the size of the sliding window, and the number of processing units in lstm
+    window = WindowGenerator(train_df, val_df, test_df,
+                             input_width=window_size,
+                             label_width=predictions_size,
+                             shift=predictions_size,
+                             label_columns=['Data [Gb]'])
+    return window
+
+
 class WindowGenerator:
     # def __init__(self, input_width, label_width, shift,
     #              train_df=train_df, val_df=val_df, test_df=test_df,
