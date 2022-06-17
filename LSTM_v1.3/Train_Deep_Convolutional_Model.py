@@ -49,7 +49,6 @@ for i in range(Max_Epochs):
     Validation_Loss.append(validation_loss)
     Validation_MAE.append(validation_mae)
 
-    # LSTM_Model_Stateful.reset_states()
 
     if i == 0:
         # Save the 1st checkpoint:
