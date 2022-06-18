@@ -1,31 +1,36 @@
 from matplotlib import pyplot as plt
 import numpy as np
-from DataSets_v01 import loadData
-from DataSets_v01 import splitData
-from DataSets_v01 import normAndScale
-from DataSets_v01 import zeroMean
+from DC_Traffic_Generator.Chaotic_Map_Generator import genDataset
+import csv
+import os.path
 
-# load the dataset
-DF = loadData('Traffic_Data_1k.csv')
-
-Train_DF, Val_DF = splitData(DF)
-plt.figure(0)
-plt.plot(Val_DF.values.squeeze())
+d = 0.2
+N_Samples = 10000
+data = genDataset(d, N_Samples)
+Time = np.arange(len(data))
+plt.figure()
+plt.plot(Time, data)
+plt.xlabel('Time [s]')
+plt.ylabel('Data Volume [Gb]')
 plt.grid()
-
-ZeroMean_Train_DF = zeroMean(Train_DF)
-ZeroMean_Val_DF = zeroMean(Val_DF)
-plt.figure(1)
-plt.plot(ZeroMean_Val_DF.values.squeeze())
-plt.grid()
-
-Normed_Train_DF = normAndScale(Train_DF)
-Normed_Val_DF = normAndScale(Val_DF)
-plt.figure(3)
-plt.plot(Normed_Val_DF.values.squeeze())
-plt.grid()
-
+plt.title('Data Volume over Time ' + 'd = ' + str(d))
 plt.show()
 
+# # save data as .csv
+dataSetRoot = r'..\Dataset'
 
+header = ['Time [s]', 'Data [Gb]']
+# yy = y.squeeze()
+xx = np.array(data).squeeze()
+arr = np.stack((Time, xx), axis=1)
+with open(os.path.join(dataSetRoot, 'Traffic_Data_d_' + str(d) + '_' + str(int(N_Samples / 1000)) + 'k_Samples.csv'),
+          'w',
+          encoding='UTF8',
+          newline='') as f:
+    writer = csv.writer(f)
 
+    # write the header
+    writer.writerow(header)
+
+    # write multiple rows
+    writer.writerows(arr)

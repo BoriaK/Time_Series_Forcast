@@ -34,8 +34,9 @@ def makePredictionsAndLabelsTestMultiStepOut(model, window, w_size):
     return test_labels, test_predictions
 
 
-def plotFunction(labels_array, predictions_array, window_length, model_eval, model_name, num_epochs):
+def plotFunction(labels_array, predictions_array, window_length, model_eval, model_name):
     plt.figure()
+    plt.suptitle(model_name, fontsize=16)
     Time = range(window_length, len(labels_array) + window_length)
     print(Time)
     plt.subplot(2, 1, 1)
@@ -44,7 +45,7 @@ def plotFunction(labels_array, predictions_array, window_length, model_eval, mod
     plt.xlabel('Time [s]')
     plt.ylabel('Data Volume [Gb]')
     plt.grid()
-    plt.title('Time Series Predictions, ' + model_name + ' Evaluation Loss = ' + str(model_eval[0]) +
+    plt.title('Time Series Predictions, ' + ' Evaluation Loss = ' + str(model_eval[0]) +
               ' MAE = ' + str(model_eval[1]))
     plt.legend(['Validation dataset', 'Predictions'])
     plt.subplot(2, 1, 2)
@@ -67,9 +68,7 @@ def plotFunction(labels_array, predictions_array, window_length, model_eval, mod
     # plt.legend(['Relative Error'])
 
     plt.savefig(
-        './Result_Plots/Evaluation/Prediction_and_Error' + model_name + ' window ' + str(window_length) + ' ' + str(
-            num_epochs) +
-        '_epochs.png', bbox_inches='tight')
+        './Result_Plots/Evaluation/' + model_name + '.png', bbox_inches='tight')
     plt.show()
 
 

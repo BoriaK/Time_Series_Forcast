@@ -23,8 +23,8 @@ def splitData(df):
     # Split the data to training and validation, testing will be from a separate set
     n = len(df)
     # train_df = df[0:int(n * 0.9) - 1]
-    train_df = df[0:int(n * 0.9)]
-    val_df = df[int(n * 0.9):]
+    train_df = df[0:int(n * 0.5)]
+    val_df = df[int(n * 0.5):]
     return train_df, val_df
 
 
@@ -173,7 +173,7 @@ def make_dataset(self, data):
         sequence_length=self.total_window_size,
         sequence_stride=1,
         shuffle=False,
-        batch_size=32, )
+        batch_size=64, )
     # batch_size=1, )
 
     ds = ds.map(self.split_window)

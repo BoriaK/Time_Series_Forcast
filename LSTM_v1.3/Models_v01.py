@@ -91,10 +91,10 @@ def deep_conv_model(conv_width):
     return model
 
 
-def lstm_model(window_size):
+def lstm_model(lstm_units):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
-        tf.keras.layers.LSTM(units=window_size, return_sequences=False,
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=False,
                              stateful=False),
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=1)
@@ -168,18 +168,18 @@ def lstm_model_multi_out(num_features):
     return model
 
 
-def deep_lstm_model(window_size):
+def deep_lstm_model(lstm_units):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
-        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
                              stateful=False),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
                              stateful=False),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
                              stateful=False),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
                              stateful=False),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=False,
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=False,
                              stateful=False),
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=1)
