@@ -18,7 +18,8 @@ from pandas import DataFrame
 # this file has the entire training cycle in a for loop over various parameters
 
 Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
-Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
+# Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
+Units_Arr = [64, 128]
 for u in Units_Arr:
     for w in Window_Sizes_Arr:
         Window_Size = w
@@ -103,6 +104,7 @@ for u in Units_Arr:
                         int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
                         i + 1) + ' epochs LSTM_Model' + ' is saved')
 
+        plt.figure()
         plt.subplot(2, 1, 1)
         plt.plot(Train_Loss)
         plt.plot(Validation_Loss)
