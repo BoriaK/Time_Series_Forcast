@@ -17,8 +17,10 @@ from pandas import DataFrame
 
 # this file has the entire training cycle in a for loop over various parameters
 
-Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
-Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
+# Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
+Window_Sizes_Arr = [128, 256, 512]
+# Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
+Units_Arr = [16]
 for u in Units_Arr:
     for w in Window_Sizes_Arr:
         Window_Size = w
@@ -120,4 +122,4 @@ for u in Units_Arr:
             int((len(Data)/2) / 1000)) + 'k_samples_Random_Data_d_' + str(d) + '_' + str(
             i + 1) + '_epochs.png',
                     bbox_inches='tight')
-        plt.show()
+        # plt.show()
