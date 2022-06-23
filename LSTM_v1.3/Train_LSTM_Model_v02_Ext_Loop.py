@@ -17,9 +17,10 @@ from pandas import DataFrame
 
 # this file has the entire training cycle in a for loop over various parameters
 
-Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
+# Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
+Window_Sizes_Arr = [512]  # tested Window lengths
 # Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
-Units_Arr = [64, 128]
+Units_Arr = [32]
 for u in Units_Arr:
     for w in Window_Sizes_Arr:
         Window_Size = w
