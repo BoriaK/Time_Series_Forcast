@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 # Loads the pre-trained model
 checkpoint_filepath = r'./Checkpoints'
-checkpoint_name = 'Batch_64_LSTM_Model_1x16_Window_512_1k_samples_Random_Data_d_0.5_1000_epochs'
+checkpoint_name = 'Batch_64_LSTM_Model_1x128_Window_512_1k_samples_Random_Data_d_0.2_5000_epochs'
 CheckPoint = os.path.join(checkpoint_filepath, checkpoint_name)
 LSTM_Model = tf.keras.models.load_model(CheckPoint)
 
