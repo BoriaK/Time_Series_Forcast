@@ -21,7 +21,7 @@ from pandas import DataFrame
 # Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
 # Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
 Model_Depth_List = [3, 5]  # tested LSTM model depths
-Units_Windows_List = [(32, 128), (64, 128), (128, 32), (128, 128)]  # List of tuples: (Units, Window_Size)
+Units_Windows_List = [(64, 128), (128, 32), (128, 128)]  # List of tuples: (Units, Window_Size)
 
 # for u in Units_Arr:
 #     for w in Window_Sizes_Arr:
