@@ -3,7 +3,8 @@ import matplotlib.pyplot as plt
 from DataSets_v01 import splitData
 from DataSets_v01 import zeroMean
 from DataSets_v01 import generateWindow
-from Models_v01 import deep_lstm_model
+from Models_v01 import deep3_lstm_model
+from Models_v01 import deep5_lstm_model
 from Models_v01 import compileModel
 from Models_v01 import fitModel
 import numpy as np
@@ -17,18 +18,24 @@ from pandas import DataFrame
 
 # this file has the entire training cycle in a for loop over various parameters
 
-Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
-# Units_Arr = [16]
-Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
-# Window_Sizes_Arr = [128, 256, 512]
-for u in Units_Arr:
-    for w in Window_Sizes_Arr:
-        Window_Size = w
-        Units = u
-        Deep_LSTM_Model = deep_lstm_model(Units)
+# Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
+# Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
+Model_Depth_List = [3, 5]  # tested LSTM model depths
+Units_Windows_List = [(32, 128), (64, 128), (128, 32), (128, 128)]  # List of tuples: (Units, Window_Size)
+
+# for u in Units_Arr:
+#     for w in Window_Sizes_Arr:
+for depth in Model_Depth_List:
+    for pair in Units_Windows_List:
+        Units = pair[0]
+        Window_Size = pair[1]
+        if depth == 3:
+            Deep_LSTM_Model = deep3_lstm_model(Units)
+        elif depth == 5:
+            Deep_LSTM_Model = deep5_lstm_model(Units)
         Deep_LSTM_Model = compileModel(Deep_LSTM_Model)
 
-        Max_Epochs = 5000
+        Max_Epochs = 15000
 
         Train_Loss = list()
         Train_MAE = list()
@@ -37,7 +44,7 @@ for u in Units_Arr:
 
         checkpoint_filepath = r'./Checkpoints'
         for i in range(Max_Epochs):
-            print('Epoch number ' + str(i))
+            print('Epoch number ' + str(i + 1))
             # load the dataset
             # DF = loadData('Traffic_Data_1k.csv')
             d = 0.2
@@ -68,12 +75,14 @@ for u in Units_Arr:
             if i == 0:
                 # Save the 1st checkpoint:
                 CheckPoint = os.path.join(checkpoint_filepath,
-                                          'Batch_64_LSTM_Model_5x' + str(Units) + '_Window_' + str(Window_Size) + '_' + str(
-                                              int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data_d_' + str(d) + '_' + str(
+                                          'Batch_64_LSTM_Model_' + str(depth) + 'x' + str(Units) + '_Window_' + str(
+                                              Window_Size) + '_' + str(
+                                              int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data_d_' + str(
+                                              d) + '_' + str(
                                               i + 1) + '_epochs')
                 Deep_LSTM_Model.save(CheckPoint)
                 print(
-                    'checkpoint ' + '5x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
+                    'checkpoint ' + str(depth) + 'x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
                         int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
                         i + 1) + ' epochs LSTM_Model' + ' is saved')
             elif validation_mae <= np.amin(Validation_MAE):
@@ -82,23 +91,40 @@ for u in Units_Arr:
                 shutil.rmtree(CheckPoint, ignore_errors=True)
                 print("Deleted '%s' directory successfully" % CheckPoint)
                 CheckPoint = os.path.join(checkpoint_filepath,
-                                          'Batch_64_LSTM_Model_5x' + str(Units) + '_Window_' + str(Window_Size) + '_' + str(
-                                              int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data_d_' + str(d) + '_' + str(
+                                          'Batch_64_LSTM_Model_' + str(depth) + 'x' + str(Units) + '_Window_' + str(
+                                              Window_Size) + '_' + str(
+                                              int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data_d_' + str(
+                                              d) + '_' + str(
                                               i + 1) + '_epochs')
                 Deep_LSTM_Model.save(CheckPoint)
                 print(
-                    'checkpoint ' + '5x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
+                    'checkpoint ' + str(depth) + 'x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
+                        int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
+                        i + 1) + ' epochs LSTM_Model' + ' is saved')
+            elif (i + 1) % 5000 == 0:
+                # Save every 5000th checkpoint:
+                CheckPoint = os.path.join(checkpoint_filepath,
+                                          'Batch_64_LSTM_Model_' + str(depth) + 'x' + str(Units) + '_Window_' + str(
+                                              Window_Size) + '_' + str(
+                                              int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data_d_' + str(
+                                              d) + '_' + str(
+                                              i + 1) + '_epochs')
+                Deep_LSTM_Model.save(CheckPoint)
+                print(
+                    'checkpoint ' + str(depth) + 'x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
                         int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
                         i + 1) + ' epochs LSTM_Model' + ' is saved')
             elif i == Max_Epochs - 1:
                 # Save the last checkpoint:
                 CheckPoint = os.path.join(checkpoint_filepath,
-                                          'Batch_64_LSTM_Model_5x' + str(Units) + '_Window_' + str(Window_Size) + '_' + str(
-                                              int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data_d_' + str(d) + '_' + str(
+                                          'Batch_64_LSTM_Model_' + str(depth) + 'x' + str(Units) + '_Window_' + str(
+                                              Window_Size) + '_' + str(
+                                              int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data_d_' + str(
+                                              d) + '_' + str(
                                               i + 1) + '_epochs')
                 Deep_LSTM_Model.save(CheckPoint)
                 print(
-                    'checkpoint ' + '5x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
+                    'checkpoint ' + str(depth) + 'x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
                         int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
                         i + 1) + ' epochs LSTM_Model' + ' is saved')
 
@@ -117,9 +143,10 @@ for u in Units_Arr:
         plt.ylabel('MAE')
         plt.legend(['Training MAE', 'Validation MAE'])
         plt.grid()
-        plt.savefig('./Result_Plots/Training_Process/' + 'Batch_64_LSTM_Model_5x' + str(Units) + '_Window_' + str(
+        plt.savefig('./Result_Plots/Training_Process/' + 'Batch_64_LSTM_Model_' + str(depth) + 'x' + str(
+            Units) + '_Window_' + str(
             Window_Size) + '_' + str(
-            int((len(Data)/2) / 1000)) + 'k_samples_Random_Data_d_' + str(d) + '_' + str(
+            int((len(Data) / 2) / 1000)) + 'k_samples_Random_Data_d_' + str(d) + '_' + str(
             i + 1) + '_epochs.png',
                     bbox_inches='tight')
         # plt.show()

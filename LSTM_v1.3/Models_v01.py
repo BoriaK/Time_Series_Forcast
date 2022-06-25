@@ -38,9 +38,6 @@ def linear_model(n_neorons):
     ])
 
 
-
-
-
 def dense():
     model = tf.keras.Sequential([
         tf.keras.layers.Dense(units=64, activation='relu'),
@@ -142,7 +139,7 @@ def cnn_deep_lstm(window_size):
         tf.keras.layers.Conv1D(filters=32,
                                kernel_size=(window_size,),
                                activation='relu'),
-        tf.keras.layers.MaxPooling1D(pool_size=1),
+        # tf.keras.layers.MaxPooling1D(pool_size=1),
         # tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten()),
         tf.keras.layers.LSTM(units=window_size, return_sequences=True,
                              stateful=False),
@@ -185,7 +182,22 @@ def lstm_model_multi_out(num_features):
     return model
 
 
-def deep_lstm_model(lstm_units):
+def deep3_lstm_model(lstm_units):
+    model = tf.keras.models.Sequential([
+        # Shape [batch, time, features] => [batch, time, lstm_units]
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
+                             stateful=False),
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
+                             stateful=False),
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
+                             stateful=False),
+        # Shape => [batch, time, features]
+        tf.keras.layers.Dense(units=1)
+    ])
+    return model
+
+
+def deep5_lstm_model(lstm_units):
     model = tf.keras.models.Sequential([
         # Shape [batch, time, features] => [batch, time, lstm_units]
         tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
