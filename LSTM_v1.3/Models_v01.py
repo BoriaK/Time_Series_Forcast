@@ -20,11 +20,25 @@ class Baseline(tf.keras.Model):
 
 
 # Models:
-def linear():
+# def linear():
+#     model = tf.keras.Sequential([
+#         tf.keras.layers.Dense(units=1)
+#     ])
+#     return model
+
+def linear_model(n_neorons):
     model = tf.keras.Sequential([
-        tf.keras.layers.Dense(units=1)
+        # Shape: (time, features) => (time*features)
+        tf.keras.layers.Flatten(),
+        tf.keras.layers.Dense(units=n_neorons, activation='relu'),
+        tf.keras.layers.Dense(units=1),
+        # Add back the time dimension.
+        # Shape: (outputs) => (1, outputs)
+        tf.keras.layers.Reshape([1, -1]),
     ])
-    return model
+
+
+
 
 
 def dense():
@@ -45,12 +59,15 @@ def dense_multi_out(num_features):
     return model
 
 
-def multi_step_dense():
+def deep_linear_model(n_neorons):
     model = tf.keras.Sequential([
         # Shape: (time, features) => (time*features)
         tf.keras.layers.Flatten(),
-        tf.keras.layers.Dense(units=32, activation='relu'),
-        tf.keras.layers.Dense(units=32, activation='relu'),
+        tf.keras.layers.Dense(units=n_neorons, activation='relu'),
+        tf.keras.layers.Dense(units=n_neorons, activation='relu'),
+        tf.keras.layers.Dense(units=n_neorons, activation='relu'),
+        tf.keras.layers.Dense(units=n_neorons, activation='relu'),
+        tf.keras.layers.Dense(units=n_neorons, activation='relu'),
         tf.keras.layers.Dense(units=1),
         # Add back the time dimension.
         # Shape: (outputs) => (1, outputs)

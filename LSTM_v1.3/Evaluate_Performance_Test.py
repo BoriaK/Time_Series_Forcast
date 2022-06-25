@@ -11,7 +11,7 @@ from matplotlib import pyplot as plt
 
 # Loads the pre-trained model
 checkpoint_filepath = r'./Checkpoints'
-checkpoint_name = 'Batch_64_LSTM_Model_1x128_Window_512_1k_samples_Random_Data_d_0.2_5000_epochs'
+checkpoint_name = 'Batch_64_LSTM_Model_1x128_Window_256_1k_samples_Random_Data_d_0.2_10000_epochs'
 CheckPoint = os.path.join(checkpoint_filepath, checkpoint_name)
 LSTM_Model = tf.keras.models.load_model(CheckPoint)
 
@@ -20,7 +20,7 @@ DF = loadData('Traffic_Data_d_0.2_1k_Samples.csv')
 
 Normed_Test_DF = zeroMean(DF)
 
-Window_Size = 512
+Window_Size = 256
 LSTM_Window = generateWindow(Window_Size, train_df=None, val_df=None, test_df=Normed_Test_DF)
 
 # Generate Predictions and Labels Array
