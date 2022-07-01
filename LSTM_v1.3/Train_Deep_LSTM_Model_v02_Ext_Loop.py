@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 from DataSets_v01 import splitData
 from DataSets_v01 import zeroMean
 from DataSets_v01 import generateWindow
+from Models_v01 import deep1_lstm_model
+from Models_v01 import deep2_lstm_model
 from Models_v01 import deep3_lstm_model
 from Models_v01 import deep5_lstm_model
 from Models_v01 import compileModel
@@ -11,38 +13,71 @@ import numpy as np
 import shutil
 from DC_Traffic_Generator.Chaotic_Map_Generator import genDataset
 from pandas import DataFrame
+import argparse
+import tensorflow as tf
 
 # Version1: use lstm model with stateful=False (can release constraint about model input shape), use large batch size
 # for training use the same loop as in "stateful" model,
 # generate a NEW instance of the data set each iteration (Epoch)
 
 # this file has the entire training cycle in a for loop over various parameters
-
+# mode1:
 # Units_Arr = [16, 32, 64, 128]  # tested lstm working units size
 # Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
-Model_Depth_List = [3, 5]  # tested LSTM model depths
-Units_Windows_List = [(64, 128), (128, 32), (128, 128)]  # List of tuples: (Units, Window_Size)
+# mode2:
+# Model_Depth_List = [3, 5]  # tested LSTM model depths
+# Units_Windows_List = [(64, 128), (128, 32), (128, 128)]  # List of tuples: (Units, Window_Size)
 
+parser = argparse.ArgumentParser()
+parser.add_argument('--n_epochs', type=int, default=15000, help='number of epochs of training')
+parser.add_argument('--root_chkps', type=str, default=r'./Checkpoints', help='checkpoint folder')
+parser.add_argument('--model_depth', type=list, default=[3, 5], help='tested LSTM model depths')
+parser.add_argument('--units_windows', type=list, default=[(64, 128), (128, 32), (128, 128)], help='List of tuples: ('
+                                                                                                   'Units, '
+                                                                                                   'Window_Size)')
+args = parser.parse_args()
+print(args)
+'''adding types to arguments'''
+if not tf.config.list_physical_devices('GPU'):
+    Device = 'cpu'
+else:
+    Device = 'cuda'
+
+print("Num GPUs Available: ", len(tf.config.list_physical_devices('GPU')))
+
+# checkpoint_filepath = r'./Checkpoints'
+checkpoint_filepath = args.root_chkps + '_' + Device
+
+if not os.path.isdir(checkpoint_filepath):
+    os.mkdir(checkpoint_filepath)
+# mode1:
 # for u in Units_Arr:
 #     for w in Window_Sizes_Arr:
+# mode2:
+Model_Depth_List = args.model_depth
+Units_Windows_List = args.units_windows
 for depth in Model_Depth_List:
     for pair in Units_Windows_List:
         Units = pair[0]
         Window_Size = pair[1]
+        if depth == 1:
+            Deep_LSTM_Model = deep1_lstm_model(Device, Units)
+        if depth == 2:
+            Deep_LSTM_Model = deep2_lstm_model(Device, Units)
         if depth == 3:
-            Deep_LSTM_Model = deep3_lstm_model(Units)
+            Deep_LSTM_Model = deep3_lstm_model(Device, Units)
         elif depth == 5:
-            Deep_LSTM_Model = deep5_lstm_model(Units)
+            Deep_LSTM_Model = deep5_lstm_model(Device, Units)
         Deep_LSTM_Model = compileModel(Deep_LSTM_Model)
 
-        Max_Epochs = 15000
+        # Max_Epochs = 15000
+        Max_Epochs = args.n_epochs
 
         Train_Loss = list()
         Train_MAE = list()
         Validation_Loss = list()
         Validation_MAE = list()
 
-        checkpoint_filepath = r'./Checkpoints'
         for i in range(Max_Epochs):
             print('Epoch number ' + str(i + 1))
             # load the dataset

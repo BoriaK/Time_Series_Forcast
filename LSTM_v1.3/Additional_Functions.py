@@ -67,8 +67,8 @@ def plotFunction(labels_array, predictions_array, window_length, model_eval, mod
     # plt.title('Prediction Error over Time')
     # plt.legend(['Relative Error'])
 
-    plt.savefig(
-        './Result_Plots/Evaluation/' + model_name + '.png', bbox_inches='tight')
+    # plt.savefig(
+    #     './Result_Plots/Evaluation/' + model_name + '.png', bbox_inches='tight')
     plt.show()
 
 
