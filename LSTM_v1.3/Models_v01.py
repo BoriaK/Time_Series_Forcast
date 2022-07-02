@@ -182,64 +182,64 @@ def lstm_model_multi_out(num_features):
     return model
 
 
-def deep1_lstm_model(device, lstm_units):
+def deep1_lstm_model(lstm_units):
     model = tf.keras.models.Sequential()
-    if device == 'cpu':
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=False, stateful=False))
-        # Shape [batch, time, features] => [batch, time, lstm_units]
-    else:
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=False, stateful=False))
+    # if device == 'cpu':
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=False, stateful=False))
+    # Shape [batch, time, features] => [batch, time, lstm_units]
+    # else:
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=False, stateful=False))
         # Shape => [batch, time, features]
     model.add(tf.keras.layers.Dense(units=1))
     return model
 
 
-def deep2_lstm_model(device, lstm_units):
+def deep2_lstm_model(lstm_units):
     model = tf.keras.models.Sequential()
-    if device == 'cpu':
-        # Shape [batch, time, features] => [batch, time, lstm_units]
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-    else:
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    # if device == 'cpu':
+    # Shape [batch, time, features] => [batch, time, lstm_units]
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    # else:
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
         # Shape => [batch, time, features]
     tf.keras.layers.Dense(units=1)
 
     return model
 
 
-def deep3_lstm_model(device, lstm_units):
+def deep3_lstm_model(lstm_units):
     model = tf.keras.models.Sequential()
-    if device == 'cpu':
-        # Shape [batch, time, features] => [batch, time, lstm_units]
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-    else:
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    # if device == 'cpu':
+    # Shape [batch, time, features] => [batch, time, lstm_units]
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    # else:
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
     # Shape => [batch, time, features]
     tf.keras.layers.Dense(units=1)
     return model
 
 
-def deep5_lstm_model(device, lstm_units):
+def deep5_lstm_model(lstm_units):
     model = tf.keras.models.Sequential()
-    if device == 'cpu':
-        # Shape [batch, time, features] => [batch, time, lstm_units]
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=False, stateful=False))
-    else:
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
-        model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=False, stateful=False))
+    # if device == 'cpu':
+    # Shape [batch, time, features] => [batch, time, lstm_units]
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=True, stateful=False))
+    model.add(tf.keras.layers.LSTM(units=lstm_units, return_sequences=False, stateful=False))
+    # else:
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
+    #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=False, stateful=False))
     # Shape => [batch, time, features]
     tf.keras.layers.Dense(units=1)
     return model
