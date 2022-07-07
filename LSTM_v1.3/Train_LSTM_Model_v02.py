@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from DataSets_v01 import splitData
 from DataSets_v01 import zeroMean
 from DataSets_v01 import generateWindow
+from DataSets_v01 import difference
 from Models_v01 import lstm_model
 from Models_v01 import compileModel
 from Models_v01 import fitModel
@@ -10,6 +11,7 @@ import numpy as np
 import shutil
 from DC_Traffic_Generator.Chaotic_Map_Generator import genDataset
 from pandas import DataFrame
+
 
 # Version1: use lstm model with stateful=False (can release constraint about model input shape), use large batch size
 # for training use the same loop as in "stateful" model,
@@ -35,7 +37,8 @@ for i in range(Max_Epochs):
     # DF = loadData('Traffic_Data_1k.csv')
     d = 0.2
     Data = genDataset(d, length=2000)  # generate a new time series from the chaotic map generator
-    DF = DataFrame(Data)
+    Diff_Data = difference(Data, 1)
+    DF = DataFrame(Diff_Data)
 
     Train_DF, Val_DF = splitData(DF)  # 0.5 Training and 0.5 Validation
 

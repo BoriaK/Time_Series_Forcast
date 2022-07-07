@@ -49,8 +49,8 @@ def plotFunction(labels_array, predictions_array, window_length, model_eval, mod
               ' MAE = ' + str(model_eval[1]))
     plt.legend(['Validation dataset', 'Predictions'])
     plt.subplot(2, 1, 2)
-    ABS_Error = abs(labels_array.squeeze() - predictions_array)
-    # ABS_Error = abs(labels_array - predictions_array)
+    # ABS_Error = abs(labels_array.squeeze() - predictions_array)
+    ABS_Error = abs(labels_array - predictions_array)
     plt.plot(Time, ABS_Error)
     plt.xlabel('Time Samples')
     plt.ylabel('Prediction Error')
@@ -106,3 +106,10 @@ def plotError(labels_array, predictions_array, window_length, model_eval, model_
             num_epochs) + '_epochs.png',
         bbox_inches='tight')
     plt.show()
+
+
+def compareList(l1, l2):
+    if l1 == l2:
+        return "Equal"
+    else:
+        return "Non equal"

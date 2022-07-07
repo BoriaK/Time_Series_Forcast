@@ -12,11 +12,16 @@ import os
 
 # set of preprocessing functions for LSTM
 # load data from .csv
-def loadData(data_file_csv):
+def loadData(data_file_csv, diff):
     dataSetRoot = r'../Dataset'
     csv_data = read_csv(os.path.join(dataSetRoot, data_file_csv), header=0, index_col=0, squeeze=True)
-    df = DataFrame(csv_data)  # get data frame from csv
-    return df
+    if diff:
+        diff_data = csv_data
+        difference(diff_data.values)
+        df = DataFrame(diff_data)  # get data frame from csv
+    else:
+        df = DataFrame(csv_data)  # get data frame from csv
+    return df, csv_data
 
 
 def splitData(df, t_len):
@@ -49,6 +54,33 @@ def zeroMean(data_df):
 
 
 # reverse Zero Mean and scale - Need to add
+
+# create a differenced series
+def difference(dataset, interval=1):
+    diff = list()
+    diff.append(0)
+    for i in range(interval, len(dataset)):
+        value = dataset[i] - dataset[i - interval]
+        diff.append(value)
+    return Series(diff)
+
+
+# invert differenced value
+def inverse_difference_single(history, yhat, interval=1):
+    return yhat + history[-interval]
+
+
+# invert differenced value
+def inverse_difference_full(history, yhat, interval=1):
+    # yhat_truncated = yhat[1:]
+    window_length = len(history) - len(yhat)
+    truncated_history = history[window_length:]
+    data_hat = list()
+    for i in range(interval, len(yhat)):
+        value = yhat[i] + truncated_history.values[i - interval]
+        data_hat.append(value)
+    return data_hat
+
 
 def generateWindow(window_size, train_df, val_df, test_df):
     # window size effectively determines the size of the sliding window, and the number of processing units in lstm
@@ -173,7 +205,7 @@ def make_dataset(self, data):
         sequence_length=self.total_window_size,
         sequence_stride=1,
         shuffle=False,
-        batch_size=512, )
+        batch_size=1028, )
     # batch_size=1, )
 
     ds = ds.map(self.split_window)
