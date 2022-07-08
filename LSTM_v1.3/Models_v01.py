@@ -134,22 +134,34 @@ def cnn_lstm(window_size):
     return model
 
 
-def cnn_deep_lstm(window_size):
+def cnn1_lstm(lstm_units):
     model = tf.keras.models.Sequential([
-        tf.keras.layers.Conv1D(filters=32,
-                               kernel_size=(window_size,),
+        tf.keras.layers.Conv1D(filters=16,
+                               kernel_size=(5,),
                                activation='relu'),
         # tf.keras.layers.MaxPooling1D(pool_size=1),
         # tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten()),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        # tf.keras.layers.Dense(units=32, activation='relu'),
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
                              stateful=False),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
+        # Shape => [batch, time, features]
+        tf.keras.layers.Dense(units=1)
+    ])
+
+    return model
+
+
+def cnn1_lstm2(lstm_units):
+    model = tf.keras.models.Sequential([
+        tf.keras.layers.Conv1D(filters=16,
+                               kernel_size=(5,),
+                               activation='relu'),
+        # tf.keras.layers.MaxPooling1D(pool_size=1),
+        # tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten()),
+        # tf.keras.layers.Dense(units=32, activation='relu'),
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
                              stateful=False),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
-                             stateful=False),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=True,
-                             stateful=False),
-        tf.keras.layers.LSTM(units=window_size, return_sequences=False,
+        tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
                              stateful=False),
         # Shape => [batch, time, features]
         tf.keras.layers.Dense(units=1)
@@ -189,7 +201,7 @@ def deep1_lstm_model(lstm_units):
     # Shape [batch, time, features] => [batch, time, lstm_units]
     # else:
     #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=False, stateful=False))
-        # Shape => [batch, time, features]
+    # Shape => [batch, time, features]
     model.add(tf.keras.layers.Dense(units=1))
     return model
 
@@ -203,7 +215,7 @@ def deep2_lstm_model(lstm_units):
     # else:
     #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
     #     model.add(tf.keras.layers.CuDNNLSTM(units=lstm_units, return_sequences=True, stateful=False))
-        # Shape => [batch, time, features]
+    # Shape => [batch, time, features]
     tf.keras.layers.Dense(units=1)
 
     return model

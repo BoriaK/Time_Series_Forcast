@@ -4,10 +4,8 @@ from DataSets_v01 import splitData
 from DataSets_v01 import zeroMean
 from DataSets_v01 import generateWindow
 from DataSets_v01 import difference
-from Models_v01 import deep1_lstm_model
-from Models_v01 import deep2_lstm_model
-from Models_v01 import deep3_lstm_model
-from Models_v01 import deep5_lstm_model
+from Models_v01 import cnn1_lstm
+from Models_v01 import cnn1_lstm2
 from Models_v01 import compileModel
 from Models_v01 import fitModel
 import numpy as np
@@ -27,13 +25,13 @@ import tensorflow as tf
 # Window_Sizes_Arr = [16, 32, 64, 128, 256, 512]  # tested Window lengths
 # mode2:
 # Model_Depth_List = [3, 5]  # tested LSTM model depths
-Units_Windows_List = [(64, 128), (128, 32), (128, 128)]  # List of tuples: (Units, Window_Size)
+Units_Windows_List = [(128, 128)]  # List of tuples: (Units, Window_Size)
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--n_epochs', type=int, default=15000, help='number of epochs of training')
+parser.add_argument('--n_epochs', type=int, default=10000, help='number of epochs of training')
 parser.add_argument('--root_chkps', type=str, default=r'./Checkpoints', help='checkpoint folder')
 parser.add_argument('--data_len', type=int, default=2000, help='length of the generated dataset')
-parser.add_argument('--model_depth', nargs='*', type=int, default=[2, 3], help='tested LSTM model depths')
+parser.add_argument('--model_depth', nargs='*', type=int, default=[2], help='tested LSTM model depths')
 parser.add_argument('--diff', type=bool, default=False, help='an indicator whether to use a series of consecutive '
                                                              'differences as training data')
 # parser.add_argument('--units_windows', nargs='*', type=int, default=[(64, 128), (128, 32), (128, 128)],
@@ -66,14 +64,14 @@ for depth in Model_Depth_List:
         Units = pair[0]
         Window_Size = pair[1]
         if depth == 1:
-            Deep_LSTM_Model = deep1_lstm_model(Units)
+            CNN_LSTM_Model = cnn1_lstm(Units)
         if depth == 2:
-            Deep_LSTM_Model = deep2_lstm_model(Units)
-        if depth == 3:
-            Deep_LSTM_Model = deep3_lstm_model(Units)
-        elif depth == 5:
-            Deep_LSTM_Model = deep5_lstm_model(Units)
-        Deep_LSTM_Model = compileModel(Deep_LSTM_Model)
+            CNN_LSTM_Model = cnn1_lstm2(Units)
+        # if depth == 3:
+        #     CNN_LSTM_Model = cnn1_lstm3(Units)
+        # elif depth == 5:
+        #     Deep_LSTM_Model = cnn1_lstm5(Units)
+        CNN_LSTM_Model = compileModel(CNN_LSTM_Model)
 
         # Max_Epochs = 15000
         Max_Epochs = args.n_epochs
@@ -100,7 +98,8 @@ for depth in Model_Depth_List:
                 DF = DataFrame(Diff_Data)
             else:
                 DF = DataFrame(Data)
-            Train_Length = 0.9  # split the dataset to Train_Length*dataset for training and (1-Train_Length)*dataset for validation
+            Train_Length = 0.9  # split the dataset to Train_Length*dataset for training and (1-Train_Length)*dataset
+            # for validation
             Train_DF, Val_DF = splitData(DF, Train_Length)
 
             # Normed_Train_DF = normAndScale(Train_DF)
@@ -110,7 +109,7 @@ for depth in Model_Depth_List:
 
             LSTM_Window = generateWindow(Window_Size, Normed_Train_DF, Normed_Val_DF, test_df=None)
 
-            History = fitModel(Deep_LSTM_Model, LSTM_Window, epochs=1)
+            History = fitModel(CNN_LSTM_Model, LSTM_Window, epochs=1)
             train_loss = History.history['loss'][0]
             train_mae = History.history['mean_absolute_error'][0]
             validation_loss = History.history['val_loss'][0]
@@ -125,55 +124,55 @@ for depth in Model_Depth_List:
             if i == 0:
                 # Save the 1st checkpoint:
                 CheckPoint = os.path.join(checkpoint_filepath,
-                                          'Batch_1028_Diff_' + str(Diff) + '_LSTM_Model_' + str(depth) + 'x' +
+                                          'Batch_1028_Diff_' + str(Diff) + '_CNN1_LSTM_Model_' + str(depth) + 'x' +
                                           str(Units) + '_Window_' + str(Window_Size) + '_' + str(
                                               int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data_d_' +
                                           str(d) + '_' + str(i + 1) + '_epochs')
 
-                Deep_LSTM_Model.save(CheckPoint)
+                CNN_LSTM_Model.save(CheckPoint)
                 print(
                     'checkpoint ' + str(depth) + 'x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
                         int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
-                        i + 1) + ' epochs LSTM_Model' + ' is saved')
+                        i + 1) + ' epochs CNN_LSTM_Model' + ' is saved')
             elif validation_mae <= np.amin(Validation_MAE):
                 # Save Best checkpoint:
                 # remove last saved checkpoint:
                 shutil.rmtree(CheckPoint, ignore_errors=True)
                 print("Deleted '%s' directory successfully" % CheckPoint)
                 CheckPoint = os.path.join(checkpoint_filepath,
-                                          'Batch_1028_Diff_' + str(Diff) + '_LSTM_Model_' + str(depth) + 'x' +
+                                          'Batch_1028_Diff_' + str(Diff) + '_CNN1_LSTM_Model_' + str(depth) + 'x' +
                                           str(Units) + '_Window_' + str(Window_Size) + '_' + str(
                                               int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data_d_' +
                                           str(d) + '_' + str(i + 1) + '_epochs')
-                Deep_LSTM_Model.save(CheckPoint)
+                CNN_LSTM_Model.save(CheckPoint)
                 print(
                     'checkpoint ' + str(depth) + 'x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
                         int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
-                        i + 1) + ' epochs LSTM_Model' + ' is saved')
+                        i + 1) + ' epochs CNN_LSTM_Model' + ' is saved')
             elif (i + 1) % 5000 == 0:
                 # Save every 5000th checkpoint:
                 CheckPoint = os.path.join(checkpoint_filepath,
-                                          'Batch_1028_Diff_' + str(Diff) + '_LSTM_Model_' + str(depth) + 'x' +
+                                          'Batch_1028_Diff_' + str(Diff) + '_CNN1_LSTM_Model_' + str(depth) + 'x' +
                                           str(Units) + '_Window_' + str(Window_Size) + '_' + str(
                                               int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data_d_' +
                                           str(d) + '_' + str(i + 1) + '_epochs')
-                Deep_LSTM_Model.save(CheckPoint)
+                CNN_LSTM_Model.save(CheckPoint)
                 print(
                     'checkpoint ' + str(depth) + 'x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
                         int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
-                        i + 1) + ' epochs LSTM_Model' + ' is saved')
+                        i + 1) + ' epochs CNN_LSTM_Model' + ' is saved')
             elif i == Max_Epochs - 1:
                 # Save the last checkpoint:
                 CheckPoint = os.path.join(checkpoint_filepath,
-                                          'Batch_1028_Diff_' + str(Diff) + '_LSTM_Model_' + str(depth) + 'x' +
+                                          'Batch_1028_Diff_' + str(Diff) + '_CNN1_LSTM_Model_' + str(depth) + 'x' +
                                           str(Units) + '_Window_' + str(Window_Size) + '_' + str(
                                               int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data_d_' +
                                           str(d) + '_' + str(i + 1) + '_epochs')
-                Deep_LSTM_Model.save(CheckPoint)
+                CNN_LSTM_Model.save(CheckPoint)
                 print(
                     'checkpoint ' + str(depth) + 'x' + str(Units) + ' Window' + str(Window_Size) + ' ' + str(
                         int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data ' + 'd=' + str(d) + ' ' + str(
-                        i + 1) + ' epochs LSTM_Model' + ' is saved')
+                        i + 1) + ' epochs CNN_LSTM_Model' + ' is saved')
 
         plt.figure()
         plt.subplot(2, 1, 1)
@@ -190,11 +189,8 @@ for depth in Model_Depth_List:
         plt.ylabel('MAE')
         plt.legend(['Training MAE', 'Validation MAE'])
         plt.grid()
-        plt.savefig('./Result_Plots/Training_Process/' + 'Batch_1028_Diff_' + str(Diff) + '_LSTM_Model_' + str(
+        plt.savefig('./Result_Plots/Training_Process/' + 'Batch_1028_Diff_' + str(Diff) + '_CNN1_LSTM_Model_' + str(
             depth) + 'x' + str(
-            Units) + '_Window_' + str(
-            Window_Size) + '_' + str(
-            int((len(Data) * Train_Length) / 1000)) + 'k_samples_Random_Data_d_' + str(d) + '_' + str(
-            i + 1) + '_epochs.png',
-                    bbox_inches='tight')
+            Units) + '_Window_' + str(Window_Size) + '_' + str(int((len(Data) * Train_Length) / 1000))
+                    + 'k_samples_Random_Data_d_' + str(d) + '_' + str(i + 1) + '_epochs.png', bbox_inches='tight')
         # plt.show()
