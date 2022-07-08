@@ -12,8 +12,10 @@ import torchvision.transforms as T
 from helper_funcs import accuracy
 import logger
 from traffic_Dataset import Trafficdataset
+import os
+import shutil
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def parse_args():
@@ -37,13 +39,24 @@ def set_wd(net, wd):
     return params
 
 
-def create_dataset(args):
+def create_dataset(args, device):
     # from traffic_Dataset import Trafficdataset
-    # train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], augs=args['augs'])
-    train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], d=args['d'],
-                               augs=None)
-    test_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], d=args['d'],
-                              augs=None)
+    if device == 'cuda':
+        # train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], augs=args['augs'])
+        train_set = Trafficdataset(seq_len=args['seq_len_cuda'], win_len=args['win_len'], step=args['step'], d=args['d']
+                                   , augs=None)
+        test_set = Trafficdataset(seq_len=args['seq_len_cuda'], win_len=args['win_len'], step=args['step'], d=args['d'],
+                                  augs=None)
+        # for debug:
+        print('seq_len = ' + str(args['seq_len_cuda']))
+    else:
+        # train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], augs=args['augs'])
+        train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], d=args['d'],
+                                   augs=None)
+        test_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], d=args['d'],
+                                  augs=None)
+        # for debug:
+        print('seq_len = ' + str(args['seq_len']))
     return train_set, test_set
 
 
@@ -61,7 +74,7 @@ def create_model(args):
     if args['load_path']:
         net.load_state_dict(torch.load(Path(args['load_path']) / 'chkpnt.pt')['model_dict'])
     net.train()
-    net.to(device)
+    net.to(Device)
     return net
 
 
@@ -71,8 +84,8 @@ def train_one_epoch(train_loader, net, opt, cross_entropy, epoch):
     for iterno, (x, y) in enumerate(train_loader):
         net.zero_grad(set_to_none=True)
 
-        x = x.to(device)
-        y = y.to(device)
+        x = x.to(Device)
+        y = y.to(Device)
 
         y_est = net(x)
 
@@ -92,8 +105,8 @@ def run_eval(test_loader, net, cross_entropy):
     net.eval()
     with torch.no_grad():
         for i, (x, y) in enumerate(test_loader):
-            x = x.to(device)
-            y = y.to(device)
+            x = x.to(Device)
+            y = y.to(Device)
             y_est = net(x)
             loss += cross_entropy(y_est.view_as(y), y).item()
     loss /= len(test_loader)
@@ -102,26 +115,34 @@ def run_eval(test_loader, net, cross_entropy):
 
 
 def train():
+    print(Device)
+    num_of_GPU = torch.cuda.device_count()
+    if Device == 'cuda':
+        print("number of GPUs is: " + str(num_of_GPU))
+
+    CheckPoint = None
+
     args = parse_args()
     with args.cfg.open() as f:
         # args = yaml.load(f, Loader=yaml.FullLoader)
         args = yaml.load(f, Loader=yaml.Loader)  # for Collab
-
     root = Path(args['save_path'])
     load_root = Path(args['load_path']) if args['load_path'] else None
     print(load_root)
     root.mkdir(parents=True, exist_ok=True)
 
-    train_set, test_set = create_dataset(args)
-    train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, drop_last=True, num_workers=8,
-                              pin_memory=True)
-    # train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, drop_last=True, num_workers=2,
-    #                           pin_memory=True)  # collab recommendation 2 workers
-    test_loader = DataLoader(test_set, batch_size=args['batch_size'], shuffle=False, drop_last=False, num_workers=4,
-                             pin_memory=True)
-    # test_loader = DataLoader(test_set, batch_size=args['batch_size'], shuffle=False, drop_last=False, num_workers=2,
-    #                          pin_memory=True)  # collab recommendation 2 workers
+    train_set, test_set = create_dataset(args, Device)
 
+    if Device == 'cuda':
+        train_loader = DataLoader(train_set, batch_size=args['batch_size_cuda'], shuffle=True, drop_last=True,
+                                  num_workers=8, pin_memory=True)
+        test_loader = DataLoader(test_set, batch_size=args['batch_size_cuda'], shuffle=False, drop_last=False,
+                                 num_workers=4, pin_memory=True)
+    else:
+        train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, drop_last=True, num_workers=8,
+                                  pin_memory=True)
+        test_loader = DataLoader(test_set, batch_size=args['batch_size'], shuffle=False, drop_last=False, num_workers=4,
+                                 pin_memory=True)
     net = create_model(args)
 
     ####################################
@@ -170,8 +191,8 @@ def train():
         # ema.set_decay_per_step(num_steps_in_epoch=len(train_loader))
         for iterno, (x, y) in enumerate(train_loader):
             net.zero_grad(set_to_none=True)
-            x = x.to(device)
-            y = y.to(device)
+            x = x.to(Device)
+            y = y.to(Device)
             y_est = net(x)
             loss = cross_entropy(y_est.view_as(y), y)
             # loss.register_hook(lambda grad: print(grad))
@@ -206,7 +227,17 @@ def train():
                         'step': steps,
                         'best_loss': best_loss
                     }
-                    torch.save(chkpnt, root / "chkpnt.pt")
+                    if CheckPoint is not None:
+                        os.remove(CheckPoint)
+                        print("Deleted '%s' successfully" % CheckPoint)
+                    CheckPoint = os.path.join(root, 'chkpnt_' + args['net_type'] + '_Best_epoch_' + str(epoch) + '.pt')
+                    torch.save(chkpnt, CheckPoint)
+                    print('chkpnt_' + args['net_type'] + '_Best_epoch_' + str(epoch) + ' is saved')
+
+                    with open(root / "args.yml", "w") as f:
+                        args["best_epoch"] = epoch
+                        yaml.dump(args, f)
+
                 if steps % args['log_interval'] == 0:
                     print(
                         "Epoch {} | train: loss {:.4f} | test: loss {:.4f} | best {:.4f}".format(
@@ -217,6 +248,20 @@ def train():
                         )
                     )
                 costs = []
+    chkpnt = {
+        'model_dict': net.state_dict(),
+        'opt_dict': opt.state_dict(),
+        'step': steps,
+        'best_loss': best_loss
+    }
+
+    CheckPoint = os.path.join(root, 'chkpnt_' + args['net_type'] + '_Last_epoch_' + str(epoch) + '.pt')
+    torch.save(chkpnt, CheckPoint)
+    print('chkpnt_' + args['net_type'] + '_Last_epoch_' + str(epoch) + ' is saved')
+
+    with open(root / "args.yml", "w") as f:
+        args["last_epoch"] = epoch
+        yaml.dump(args, f)
 
 
 if __name__ == "__main__":

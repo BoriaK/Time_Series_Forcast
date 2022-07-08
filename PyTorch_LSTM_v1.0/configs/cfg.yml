@@ -1,8 +1,14 @@
-seq_len: 16384
+#gpu_factor: 32
+batch_size: 32
+#batch_size_cuda = batch_size * gpu_factor
+batch_size_cuda: 1024
+#seq_len: 16384
+seq_len: 4096
+#seq_len_cuda = seq_len * gpu_factor
+seq_len_cuda: 131072
 win_len: 256
 step: 1
-batch_size: 128
-n_epochs: 3000
+n_epochs: 500
 wd: 0.0001
 max_lr: 0.001
 betas: [0.9, 0.99]
