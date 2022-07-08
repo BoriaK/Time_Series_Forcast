@@ -104,7 +104,8 @@ def run_eval(test_loader, net, cross_entropy):
 def train():
     args = parse_args()
     with args.cfg.open() as f:
-        args = yaml.load(f, Loader=yaml.FullLoader)
+        # args = yaml.load(f, Loader=yaml.FullLoader)
+        args = yaml.load(f, Loader=yaml.Loader)  # for Collab
 
     root = Path(args['save_path'])
     load_root = Path(args['load_path']) if args['load_path'] else None
@@ -114,8 +115,12 @@ def train():
     train_set, test_set = create_dataset(args)
     train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, drop_last=True, num_workers=8,
                               pin_memory=True)
+    # train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, drop_last=True, num_workers=2,
+    #                           pin_memory=True)  # collab recommendation 2 workers
     test_loader = DataLoader(test_set, batch_size=args['batch_size'], shuffle=False, drop_last=False, num_workers=4,
                              pin_memory=True)
+    # test_loader = DataLoader(test_set, batch_size=args['batch_size'], shuffle=False, drop_last=False, num_workers=2,
+    #                          pin_memory=True)  # collab recommendation 2 workers
 
     net = create_model(args)
 
