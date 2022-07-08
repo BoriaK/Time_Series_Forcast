@@ -158,7 +158,7 @@ def cnn1_lstm2(lstm_units):
                                activation='relu'),
         # tf.keras.layers.MaxPooling1D(pool_size=1),
         # tf.keras.layers.TimeDistributed(tf.keras.layers.Flatten()),
-        # tf.keras.layers.Dense(units=32, activation='relu'),
+        # tf.keras.layers.Dense(units=lstm_units, activation='relu'),
         tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
                              stateful=False),
         tf.keras.layers.LSTM(units=lstm_units, return_sequences=True,
@@ -434,13 +434,19 @@ def compileModel(model):
     return model
 
 
-def fitModel(model, window, epochs, patience=3):
+def fitModel(model, window, epochs, ext_callback, patience=3):
     early_stopping = tf.keras.callbacks.EarlyStopping(monitor='val_loss',
                                                       patience=patience,
                                                       mode='min',
                                                       verbose=1)
-    history = model.fit(window.train, epochs=epochs,
-                        validation_data=window.val,
-                        # callbacks=[early_stopping]
-                        )
+    if ext_callback is not None:
+        history = model.fit(window.train, epochs=epochs,
+                            validation_data=window.val,
+                            # callbacks=[early_stopping]
+                            callbacks=[ext_callback]
+                            )
+    else:
+        history = model.fit(window.train, epochs=epochs,
+                            validation_data=window.val,
+                            )
     return history

@@ -14,6 +14,7 @@ from DC_Traffic_Generator.Chaotic_Map_Generator import genDataset
 from pandas import DataFrame
 import argparse
 import tensorflow as tf
+import datetime
 
 # Version1: use lstm model with stateful=False (can release constraint about model input shape), use large batch size
 # for training use the same loop as in "stateful" model,
@@ -109,7 +110,10 @@ for depth in Model_Depth_List:
 
             LSTM_Window = generateWindow(Window_Size, Normed_Train_DF, Normed_Val_DF, test_df=None)
 
-            History = fitModel(CNN_LSTM_Model, LSTM_Window, epochs=1, ext_callback=None)
+            log_dir = "Result_Plots/logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+            tensorboard_callback = tf.keras.callbacks.TensorBoard(log_dir=log_dir, histogram_freq=1)
+
+            History = fitModel(CNN_LSTM_Model, LSTM_Window, epochs=1, ext_callback=tensorboard_callback)
             train_loss = History.history['loss'][0]
             train_mae = History.history['mean_absolute_error'][0]
             validation_loss = History.history['val_loss'][0]
