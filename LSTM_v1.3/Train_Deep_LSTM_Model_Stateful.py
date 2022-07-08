@@ -28,7 +28,7 @@ Max_Epochs = 50
 
 # Version2: use lstm model with stateful=True, (need constraint about model input shape). make Epochs = 1,
 # and put inside an external for loop over "Max_Epochs" with manually reset_state() between epochs.
-# just like in LSTM_v1.0
+# just like in TF.Keras_LSTM_v1.0
 Deep_LSTM_Model_Stateful = deep_lstm_model_stateful(Window_Size, LSTM_Window.example[0].shape)
 Deep_LSTM_Model_Stateful = compileModel(Deep_LSTM_Model_Stateful)
 
