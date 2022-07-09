@@ -41,7 +41,7 @@ def set_wd(net, wd):
 
 def create_dataset(args, device):
     # from traffic_Dataset import Trafficdataset
-    if device == 'cuda':
+    if device.type == 'cuda':
         train_set = Trafficdataset(seq_len=args['seq_len_cuda'], win_len=args['win_len'], step=args['step'],
                                    d=args['d'], augs=args['augs'])
         # train_set = Trafficdataset(seq_len=args['seq_len_cuda'], win_len=args['win_len'], step=args['step'],
@@ -117,9 +117,11 @@ def run_eval(test_loader, net, cross_entropy):
 
 
 def train():
+    # # for debug:
+    # Device = torch.device("cuda")
     print(Device)
     num_of_GPU = torch.cuda.device_count()
-    if Device == 'cuda':
+    if Device.type == 'cuda':
         print("number of GPUs is: " + str(num_of_GPU))
 
     CheckPoint = None
@@ -135,11 +137,11 @@ def train():
 
     train_set, test_set = create_dataset(args, Device)
 
-    if Device == 'cuda':
+    if Device.type == 'cuda':
         train_loader = DataLoader(train_set, batch_size=args['batch_size_cuda'], shuffle=True, drop_last=True,
-                                  num_workers=8, pin_memory=True)
+                                  num_workers=4*num_of_GPU, pin_memory=True)
         test_loader = DataLoader(test_set, batch_size=args['batch_size_cuda'], shuffle=False, drop_last=False,
-                                 num_workers=4, pin_memory=True)
+                                 num_workers=4*num_of_GPU, pin_memory=True)
     else:
         train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, drop_last=True, num_workers=8,
                                   pin_memory=True)
