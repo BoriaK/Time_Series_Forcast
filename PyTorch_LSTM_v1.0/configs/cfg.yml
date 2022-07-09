@@ -8,7 +8,7 @@ seq_len: 4096
 seq_len_cuda: 16384
 win_len: 256
 step: 1
-n_epochs: 500
+n_epochs: 1000
 wd: 0.0001
 max_lr: 0.001
 betas: [0.9, 0.99]
