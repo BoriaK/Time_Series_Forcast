@@ -42,17 +42,19 @@ def set_wd(net, wd):
 def create_dataset(args, device):
     # from traffic_Dataset import Trafficdataset
     if device == 'cuda':
-        # train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], augs=args['augs'])
-        train_set = Trafficdataset(seq_len=args['seq_len_cuda'], win_len=args['win_len'], step=args['step'], d=args['d']
-                                   , augs=None)
+        train_set = Trafficdataset(seq_len=args['seq_len_cuda'], win_len=args['win_len'], step=args['step'],
+                                   d=args['d'], augs=args['augs'])
+        # train_set = Trafficdataset(seq_len=args['seq_len_cuda'], win_len=args['win_len'], step=args['step'],
+        #                            d=args['d'], augs=None)
         test_set = Trafficdataset(seq_len=args['seq_len_cuda'], win_len=args['win_len'], step=args['step'], d=args['d'],
                                   augs=None)
         # for debug:
         print('seq_len = ' + str(args['seq_len_cuda']))
     else:
-        # train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], augs=args['augs'])
         train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], d=args['d'],
-                                   augs=None)
+                                   augs=args['augs'])
+        # train_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], d=args['d'],
+        #                            augs=None)
         test_set = Trafficdataset(seq_len=args['seq_len'], win_len=args['win_len'], step=args['step'], d=args['d'],
                                   augs=None)
         # for debug:
@@ -209,7 +211,7 @@ def train():
 
             if steps % args['log_interval'] == 0:
                 print(
-                    "Epoch {} | train: loss {:.4f} | best {:.4f}".format(
+                    "Epoch {} | train: loss {:.8f} | best {:.8f}".format(
                         epoch,
                         loss,
                         best_loss
@@ -240,7 +242,7 @@ def train():
 
                 if steps % args['log_interval'] == 0:
                     print(
-                        "Epoch {} | train: loss {:.4f} | test: loss {:.4f} | best {:.4f}".format(
+                        "Epoch {} | train: loss {:.8f} | test: loss {:.8f} | best {:.8f}".format(
                             epoch,
                             loss,
                             loss_test,

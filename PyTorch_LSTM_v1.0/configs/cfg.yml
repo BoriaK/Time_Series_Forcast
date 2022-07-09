@@ -18,4 +18,5 @@ load_path:
 log_interval: 100
 save_interval: 100
 d: 0.2
-augs: ['flip', cutout]
+#augs: ['flip', cutout]
+augs:
