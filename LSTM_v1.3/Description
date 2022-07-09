@@ -1,2 +1,0 @@
-this architecture is based on the series forcasting using windowing and dataset.Dataset object.
-will also contain modified version similar to is the same as LSTM_v01, 5 Deep LSTM layers, 10 neurons each
