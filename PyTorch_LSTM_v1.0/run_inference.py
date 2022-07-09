@@ -9,6 +9,8 @@ from pathlib import Path
 from torch.utils.data import DataLoader
 import matplotlib.pyplot as plt
 import os
+import shutil
+import glob
 
 Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -43,60 +45,74 @@ def evalAndPlot(ext_args, cpname, checkpoint):
     net = create_model(ext_args, checkpoint)
     net.eval()
     net.to(Device)
+    # run a loop over 5 different random test instances
+    tests = 5
+    Loss_arr = np.zeros(tests)
+    for tst in range(tests):
+        criterion = torch.nn.L1Loss()
+        x, y = gen_data_b(d=0.2, seq_len=10000, win_len=ext_args['win_len'], step=1, mode='test')
+        ys = torch.zeros_like(y)
+        n_frames = x.shape[0] - ext_args['win_len']
+        loss = 0
+        with torch.no_grad():
+            for i in range(n_frames):
+                # print(i, i + args['win_len'])
+                xi = x[i:i + ext_args['win_len']]
+                xi = xi.view(1, 1, -1).to(Device)
+                pred = net(xi)
+                loss += criterion(pred.view_as(y[i]), y[i]).item()
+                ys[i] = pred.cpu()
+        loss /= n_frames
+        print(loss)
+        Loss_arr[tst] = loss
+        from yw import yw
+        y = x[ext_args['win_len']::ext_args['step']]
+        X = x[:-ext_args['step']].unfold(dimension=0, size=ext_args['win_len'], step=ext_args['step'])
+        y_yw, _ = yw(X, y, p=ext_args['win_len'])
 
-    criterion = torch.nn.L1Loss()
-    x, y = gen_data_b(d=0.2, seq_len=10000, win_len=ext_args['win_len'], step=1, mode='test')
-    ys = torch.zeros_like(y)
-    n_frames = x.shape[0] - ext_args['win_len']
-    loss = 0
-    with torch.no_grad():
-        for i in range(n_frames):
-            # print(i, i + args['win_len'])
-            xi = x[i:i + ext_args['win_len']]
-            xi = xi.view(1, 1, -1).to(Device)
-            pred = net(xi)
-            loss += criterion(pred.view_as(y[i]), y[i]).item()
-            ys[i] = pred.cpu()
-    loss /= n_frames
-    print(loss)
-    from yw import yw
-    y = x[ext_args['win_len']::ext_args['step']]
-    X = x[:-ext_args['step']].unfold(dimension=0, size=ext_args['win_len'], step=ext_args['step'])
-    y_yw, _ = yw(X, y, p=ext_args['win_len'])
+        # return signals to be between 0 and 1
+        # y_unNorm = y - y.min()
+        # ys_unNorm = ys - ys.min()
 
-    # return signals to be between 0 and 1
-    # y_unNorm = y - y.min()
-    # ys_unNorm = ys - ys.min()
-    # from numpy.random import default_rng
-    rng = np.random.default_rng()
-    FirstSample = rng.integers(0, len(y)-1000)
-    # FirstSample = 0
-    # print(FirstSample)
-    # Plot a random slice of 1000 samples:
-    plt.figure()
-    plt.suptitle(cpname, fontsize=16)
-    plt.subplot(2, 1, 1)
-    plt.plot(y.view(-1)[FirstSample:FirstSample+1000], '-', linewidth=0.5)
-    plt.plot(ys.view(-1)[FirstSample:FirstSample+1000], 'r-', linewidth=0.5)
-    # plt.plot(y_yw.view(-1), 'k-')
-    plt.xlabel('Time Samples')
-    plt.ylabel('Traffic [Gb]')
-    plt.grid()
-    plt.title('Predictions, from ' + str(FirstSample) + ', 1k samples' + ' MAE = ' + str(loss))
-    plt.legend(['Testing Data', 'Predictions'])
-    plt.subplot(2, 1, 2)
-    ABS_Error = abs(y.view(-1) - ys.view(-1))
-    plt.plot(ABS_Error[FirstSample:FirstSample+1000], 'b-', linewidth=0.5)
-    # plt.plot(y.view(-1)-y_yw.view(-1), 'r.-')
-    plt.xlabel('Time Samples')
-    plt.ylabel('Prediction Error')
-    plt.grid()
-    plt.title('ABS Prediction Error, from ' + str(FirstSample) + ', 1k samples')
-    plt.legend(['ABS Error'])
-    plt.savefig(
-        './outputs/result_plots/' + cpname + '.png',
-        bbox_inches='tight')
-    # plt.show()
+        # from numpy.random import default_rng
+        rng = np.random.default_rng()
+        FirstSample = rng.integers(0, len(y) - 1000)
+        # FirstSample = 0
+        # print(FirstSample)
+
+        # Plot a random slice of 1000 samples:
+        plt.figure()
+        plt.suptitle(cpname, fontsize=16)
+        plt.subplot(2, 1, 1)
+        plt.plot(y.view(-1)[FirstSample:FirstSample + 1000], '-', linewidth=0.5)
+        plt.plot(ys.view(-1)[FirstSample:FirstSample + 1000], 'r-', linewidth=0.5)
+        # plt.plot(y_yw.view(-1), 'k-')
+        plt.xlabel('Time Samples')
+        plt.ylabel('Traffic [Gb]')
+        plt.grid()
+        plt.title(
+            'Predictions, test ' + str(tst + 1) + ' from ' + str(FirstSample) + ', 1k samples' + ' MAE = ' + str(loss))
+        plt.legend(['Testing Data', 'Predictions'])
+        plt.subplot(2, 1, 2)
+        ABS_Error = abs(y.view(-1) - ys.view(-1))
+        plt.plot(ABS_Error[FirstSample:FirstSample + 1000], 'b-', linewidth=0.5)
+        # plt.plot(y.view(-1)-y_yw.view(-1), 'r.-')
+        plt.xlabel('Time Samples')
+        plt.ylabel('Prediction Error')
+        plt.grid()
+        plt.title('ABS Prediction Error, test ' + str(tst + 1) + ' from ' + str(FirstSample) + ', 1k samples')
+        plt.legend(['ABS Error'])
+        plt.savefig(
+            './outputs/result_plots/' + cpname + '_test_' + str(tst + 1) + '.png',
+            bbox_inches='tight')
+        # plt.show()
+    AVG_Loss = Loss_arr.mean()
+    Dir_Path = './outputs/result_plots/' + cpname + '_AVG_MAE_' + str(AVG_Loss)
+    os.mkdir(Dir_Path)
+    files = glob.glob('./outputs/result_plots/*.png')
+    for f in files:
+        shutil.move(f, Dir_Path)
+    print('the AVERAGE MAE for ' + cpname + ' is: ' + str(AVG_Loss))
     return
 
 
