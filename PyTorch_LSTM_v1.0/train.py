@@ -139,14 +139,14 @@ def train():
 
     if Device.type == 'cuda':
         train_loader = DataLoader(train_set, batch_size=args['batch_size_cuda'], shuffle=True, drop_last=True,
-                                  num_workers=4*num_of_GPU, pin_memory=True)
+                                  num_workers=4*num_of_GPU, pin_memory=True, prefetch_factor=4)
         test_loader = DataLoader(test_set, batch_size=args['batch_size_cuda'], shuffle=False, drop_last=False,
-                                 num_workers=4*num_of_GPU, pin_memory=True)
+                                 num_workers=4*num_of_GPU, pin_memory=True, prefetch_factor=4)
     else:
         train_loader = DataLoader(train_set, batch_size=args['batch_size'], shuffle=True, drop_last=True, num_workers=8,
-                                  pin_memory=True)
+                                  pin_memory=True, prefetch_factor=4)
         test_loader = DataLoader(test_set, batch_size=args['batch_size'], shuffle=False, drop_last=False, num_workers=4,
-                                 pin_memory=True)
+                                 pin_memory=True, prefetch_factor=4)
     net = create_model(args)
 
     ####################################

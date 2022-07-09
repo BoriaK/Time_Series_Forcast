@@ -140,12 +140,14 @@ class Net(nn.Module):
 class LSTEMO(nn.Module):
     def __init__(self, device=torch.device("cuda")):
         super().__init__()
+        self.bn = nn.BatchNorm1d(num_features=1)
         self.l = nn.LSTM(batch_first=True, hidden_size=16, num_layers=2, input_size=1)
         self.fc = nn.Linear(16, 1)
 
     def forward(self, x, h=None):
-        x = x.permute(0, 2, 1).contiguous()
-        y, h = self.l(x)
+        x_norm = self.bn(x)
+        x_norm = x_norm.permute(0, 2, 1).contiguous()
+        y, h = self.l(x_norm)
         y = self.fc(y[:, -1, :])
         return y
 
