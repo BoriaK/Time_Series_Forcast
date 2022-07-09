@@ -45,7 +45,10 @@ def gen_data_b(d, seq_len, win_len, step, mode='train'):
     y = x[win_len::step]
     if mode == 'train':
         x = x[:-step].unfold(dimension=0, size=win_len, step=step)
-    return x, y
+    # Normalize x and y to be between -0.5 and 0.5
+    x_norm = x - x.mean()
+    y_norm = y - y.mean()
+    return x_norm, y_norm
 
 
 class Trafficdataset(torch.utils.data.Dataset):
