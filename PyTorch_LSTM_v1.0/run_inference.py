@@ -82,7 +82,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
     plt.xlabel('Time Samples')
     plt.ylabel('Traffic [Gb]')
     plt.grid()
-    plt.title('Predictions, from ' + str(FirstSample) + ' 1k samples' + ' MAE = ' + str(loss))
+    plt.title('Predictions, from ' + str(FirstSample) + ', 1k samples' + ' MAE = ' + str(loss))
     plt.legend(['Testing Data', 'Predictions'])
     plt.subplot(2, 1, 2)
     ABS_Error = abs(y_unNorm.view(-1) - ys_unNorm.view(-1))
@@ -91,7 +91,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
     plt.xlabel('Time Samples')
     plt.ylabel('Prediction Error')
     plt.grid()
-    plt.title('ABS Prediction Error, from ' + str(FirstSample) + ' 1k samples')
+    plt.title('ABS Prediction Error, from ' + str(FirstSample) + ', 1k samples')
     plt.legend(['ABS Error'])
     # plt.savefig(
     #     './outputs/result_plots/' + cpname + '.png',
