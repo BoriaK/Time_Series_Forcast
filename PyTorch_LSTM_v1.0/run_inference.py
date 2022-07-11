@@ -17,7 +17,7 @@ Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--f_res", default='outputs/lstm_out/args.yml', type=Path)
+    parser.add_argument("--f_res", default='outputs/lstm/args.yml', type=Path)
     args = parser.parse_args()
     return args
 
@@ -45,6 +45,9 @@ def evalAndPlot(ext_args, cpname, checkpoint):
     net = create_model(ext_args, checkpoint)
     net.eval()
     net.to(Device)
+
+    # root = Path(ext_args['save_path'] + '/' + ext_args['net_type'])
+
     # run a loop over 5 different random test instances
     tests = 5
     Loss_arr = np.zeros(tests)
@@ -69,10 +72,6 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         y = x[ext_args['win_len']::ext_args['step']]
         X = x[:-ext_args['step']].unfold(dimension=0, size=ext_args['win_len'], step=ext_args['step'])
         y_yw, _ = yw(X, y, p=ext_args['win_len'])
-
-        # return signals to be between 0 and 1
-        # y_unNorm = y - y.min()
-        # ys_unNorm = ys - ys.min()
 
         # from numpy.random import default_rng
         rng = np.random.default_rng()
@@ -103,13 +102,14 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         plt.title('ABS Prediction Error, test ' + str(tst + 1) + ' from ' + str(FirstSample) + ', 1k samples')
         plt.legend(['ABS Error'])
         plt.savefig(
-            './outputs/result_plots/' + cpname + '_test_' + str(tst + 1) + '.png',
+            ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/' + cpname + '_test_' + str(tst + 1) + '.png',
             bbox_inches='tight')
         # plt.show()
     AVG_Loss = Loss_arr.mean()
-    Dir_Path = './outputs/result_plots/' + cpname + '_AVG_MAE_' + str(AVG_Loss)
+    Dir_Path = ext_args['save_path'] + '/' + ext_args['net_type'] + '/result_plots/' + cpname + '_AVG_MAE_' + str(
+        AVG_Loss)
     os.mkdir(Dir_Path)
-    files = glob.glob('./outputs/result_plots/*.png')
+    files = glob.glob(ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/' + '*.png')
     for f in files:
         shutil.move(f, Dir_Path)
     print('the AVERAGE MAE for ' + cpname + ' is: ' + str(AVG_Loss))
@@ -126,10 +126,10 @@ def run():
     if args['save_path']:
         if args['best_epoch'] != args['last_epoch']:
             CheckPointName = args['net_type'] + '_Best_epoch_' + str(args['best_epoch'])
-            CheckPoint = os.path.join(args['save_path'], 'chkpnt_' + CheckPointName + '.pt')
+            CheckPoint = os.path.join(args['save_path'], args['net_type'], 'chkpnt_' + CheckPointName + '.pt')
             evalAndPlot(args, CheckPointName, CheckPoint)  # evaluate "Best" model
         CheckPointName = args['net_type'] + '_Last_epoch_' + str(args['last_epoch'])
-        CheckPoint = os.path.join(args['save_path'], 'chkpnt_' + CheckPointName + '.pt')
+        CheckPoint = os.path.join(args['save_path'], args['net_type'], 'chkpnt_' + CheckPointName + '.pt')
         evalAndPlot(args, CheckPointName, CheckPoint)  # evaluate "Last" model
     else:
         raise ValueError("no saved checkpoint")

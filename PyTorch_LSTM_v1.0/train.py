@@ -130,7 +130,7 @@ def train():
     with args.cfg.open() as f:
         # args = yaml.load(f, Loader=yaml.FullLoader)
         args = yaml.load(f, Loader=yaml.Loader)  # for Collab
-    root = Path(args['save_path'])
+    root = Path(args['save_path'] + '/' + args['net_type'])
     load_root = Path(args['load_path']) if args['load_path'] else None
     print(load_root)
     root.mkdir(parents=True, exist_ok=True)
