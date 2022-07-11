@@ -78,7 +78,7 @@ class Trafficdataset(torch.utils.data.Dataset):
 
 
 if __name__ == "__main__":
-    x, _ = gen_data_b(0.1, 8192, 64, 16, mode='test')
+    x, _ = gen_data_b(0.2, 8192, 64, 16, mode='test')
     import matplotlib.pyplot as plt
 
     plt.plot(x.view(-1))

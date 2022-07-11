@@ -74,9 +74,11 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         y_yw, _ = yw(X, y, p=ext_args['win_len'])
 
         # from numpy.random import default_rng
-        rng = np.random.default_rng()
-        FirstSample = rng.integers(0, len(y) - 1000)
-        # FirstSample = 0
+        if len(x) > 1000:
+            rng = np.random.default_rng()
+            FirstSample = rng.integers(0, len(y) - 1000)
+        else:
+            FirstSample = 0
         # print(FirstSample)
 
         # Plot a random slice of 1000 samples:

@@ -2,13 +2,13 @@ seq_len: 16384
 win_len: 256
 step: 1
 batch_size: 128
-n_epochs: 3000
+n_epochs: 1000
 wd: 0.00001
 max_lr: 0.001
 betas: [0.9, 0.99]
 net_type: cnn
 
-save_path: outputs/cnn_256
+save_path: ./outputs
 load_path: 
 log_interval: 100
 save_interval: 100
