@@ -155,7 +155,7 @@ class LSTEMO(nn.Module):
 class LSTEMO2(nn.Module):
     def __init__(self, device=torch.device("cuda")):
         super().__init__()
-        nf = 16
+        nf = 128
         self.conv_stack = nn.Sequential(
             nn.ReflectionPad1d(1),
             nn.Conv1d(1, nf, kernel_size=3, stride=1, padding=0, bias=False),
@@ -165,8 +165,8 @@ class LSTEMO2(nn.Module):
             ResBlock(dim=nf, dilation=3, ks=3),
             ResBlock(dim=nf, dilation=9, ks=3),
         )
-        self.l = nn.LSTM(batch_first=True, hidden_size=16, num_layers=2, input_size=nf)
-        self.fc = nn.Linear(16, 1)
+        self.l = nn.LSTM(batch_first=True, hidden_size=128, num_layers=2, input_size=nf)
+        self.fc = nn.Linear(128, 1)
 
     def forward(self, x, h=None):
         x = self.conv_stack(x)
