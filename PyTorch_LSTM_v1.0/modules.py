@@ -141,8 +141,8 @@ class LSTEMO(nn.Module):
     def __init__(self, device=torch.device("cuda")):
         super().__init__()
         self.bn = nn.BatchNorm1d(num_features=1)
-        self.l = nn.LSTM(batch_first=True, hidden_size=64, num_layers=2, input_size=1)
-        self.fc = nn.Linear(64, 1)
+        self.l = nn.LSTM(batch_first=True, hidden_size=128, num_layers=2, input_size=1)
+        self.fc = nn.Linear(128, 1)
 
     def forward(self, x, h=None):
         x_norm = self.bn(x)

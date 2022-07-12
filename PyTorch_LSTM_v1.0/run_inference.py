@@ -49,7 +49,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
     # root = Path(ext_args['save_path'] + '/' + ext_args['net_type'])
 
     # run a loop over 5 different random test instances
-    tests = 5
+    tests = 20
     Loss_arr = np.zeros(tests)
     for tst in range(tests):
         criterion = torch.nn.L1Loss()
@@ -72,6 +72,9 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         y = x[ext_args['win_len']::ext_args['step']]
         X = x[:-ext_args['step']].unfold(dimension=0, size=ext_args['win_len'], step=ext_args['step'])
         y_yw, _ = yw(X, y, p=ext_args['win_len'])
+
+        # for Debug #
+        print('first sample is: ' + str(x[0]))
 
         # from numpy.random import default_rng
         if len(x) > 1000:
@@ -107,6 +110,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
             ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/' + cpname + '_test_' + str(tst + 1) + '.png',
             bbox_inches='tight')
         # plt.show()
+        plt.close()
     AVG_Loss = Loss_arr.mean()
     Dir_Path = ext_args['save_path'] + '/' + ext_args['net_type'] + '/result_plots/' + cpname + '_AVG_MAE_' + str(
         AVG_Loss)

@@ -6,7 +6,7 @@ batch_size_cuda: 128
 seq_len: 4096
 #seq_len_cuda = seq_len * gpu_factor
 seq_len_cuda: 16384
-win_len: 256
+win_len: 128
 step: 1
 n_epochs: 1000
 #n_epochs: 5
