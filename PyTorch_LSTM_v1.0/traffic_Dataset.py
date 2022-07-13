@@ -59,7 +59,7 @@ def gen_data_b(d, seq_len, win_len, step, mode='train'):
         attempts += 1
         if zc < 3 and attempts == 10:
             raise ValueError("problem with data generation")
-            break
+            # break
     return x, y
 
 
