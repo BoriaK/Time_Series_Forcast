@@ -17,7 +17,7 @@ Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--f_res", default='outputs/lstm/args.yml', type=Path)
+    parser.add_argument("--f_res", default='outputs/cnn_lstm/args.yml', type=Path)
     args = parser.parse_args()
     return args
 
@@ -88,8 +88,8 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         plt.figure()
         plt.suptitle(cpname, fontsize=16)
         plt.subplot(2, 1, 1)
-        plt.plot(y.view(-1)[FirstSample:FirstSample + 1000], '-', linewidth=0.5)
-        plt.plot(ys.view(-1)[FirstSample:FirstSample + 1000], 'r-', linewidth=0.5)
+        plt.plot(y.view(-1)[FirstSample:FirstSample + 1000], '-+', linewidth=0.5)
+        plt.plot(ys.view(-1)[FirstSample:FirstSample + 1000], 'r-*', linewidth=0.5)
         # plt.plot(y_yw.view(-1), 'k-')
         plt.xlabel('Time Samples')
         plt.ylabel('Traffic [Gb]')

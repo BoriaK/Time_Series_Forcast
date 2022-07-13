@@ -20,7 +20,7 @@ Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cfg", default='configs/cfg_cnn.yml', type=Path)
+    parser.add_argument("--cfg", default='configs/cfg_cnn_lstm.yml', type=Path)
     args = parser.parse_args()
     return args
 
@@ -132,7 +132,7 @@ def train():
         args = yaml.load(f, Loader=yaml.Loader)  # for Collab
     root = Path(args['save_path'] + '/' + args['net_type'])
     load_root = Path(args['load_path']) if args['load_path'] else None
-    print(load_root)
+    # print(load_root)
     root.mkdir(parents=True, exist_ok=True)
 
     train_set, test_set = create_dataset(args, Device)
@@ -196,8 +196,11 @@ def train():
         for iterno, (x, y) in enumerate(train_loader):
             net.zero_grad(set_to_none=True)
             x = x.to(Device)
+            # print(x.shape)
             y = y.to(Device)
+            # print(y.shape)
             y_est = net(x)
+            # print(y_est.shape)
             loss = cross_entropy(y_est.view_as(y), y)
             # loss.register_hook(lambda grad: print(grad))
             loss.backward()

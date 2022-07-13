@@ -5,6 +5,8 @@ import torch.nn.functional as F
 import torch.utils.data
 import numpy as np
 from augs import Augs
+from PyAstronomy import pyaC
+
 
 
 def gen_data(d, seq_len=1000):
@@ -27,27 +29,37 @@ def gen_data(d, seq_len=1000):
 
 
 def gen_data_b(d, seq_len, win_len, step, mode='train'):
-    # 1.5 < m1,m2 <= 2
-    m1 = 2
-    m2 = 2
-    # 0 < d < 1, small d -> mostly mice, large d -> mostly elephants
-    # d = 0.5
-    # randomly generate initial network state x_0 from uniform distribution: x_0~U(0,1)
-    x0 = torch.rand(1) * 0.99 + 0.01
-    x = torch.zeros(seq_len + 1, dtype=torch.float)
-    x[0] = x0
-    for i in range(0, seq_len):
-        if x[i] <= d:
-            x[i + 1] = x[i] + (1 - d) * np.power((x[i] / d), m1)
-        else:
-            x[i + 1] = x[i] - d * np.power((1 - x[i]) / (1 - d), m2)
-    x = x[1:]  # unscaled data [0,1)
-    y = x[win_len::step]
-    if mode == 'train':
-        x = x[:-step].unfold(dimension=0, size=win_len, step=step)
-    # Normalize x and y to be between -0.5 and 0.5
-    # x_norm = x - x.mean()
-    # y_norm = y - y.mean()
+    attempts = 0
+    zc = 0
+    while zc < 3 and attempts < 10:
+        # 1.5 < m1,m2 <= 2
+        m1 = 2
+        m2 = 2
+        # 0 < d < 1, small d -> mostly mice, large d -> mostly elephants
+        # d = 0.5
+        # randomly generate initial network state x_0 from uniform distribution: x_0~U(0,1)
+        x0 = torch.rand(1) * 0.99 + 0.01
+        x = torch.zeros(seq_len + 1, dtype=torch.float)
+        x[0] = x0
+        for i in range(0, seq_len):
+            if x[i] <= d:
+                x[i + 1] = x[i] + (1 - d) * np.power((x[i] / d), m1)
+            else:
+                x[i + 1] = x[i] - d * np.power((1 - x[i]) / (1 - d), m2)
+        x = x[1:]  # unscaled data [0,1)
+        y = x[win_len::step]
+        if mode == 'train':
+            x = x[:-step].unfold(dimension=0, size=win_len, step=step)
+
+        # Check the number of zero crossings, to avoid "flat" data set generation
+        x_norm = x - 0.5
+        # Get coordinates and indices of zero crossings
+        xc = pyaC.zerocross1d(np.arange(len(x_norm)), x_norm.data, getIndices=False)
+        zc = len(xc)  # the number of zero crossings for the generated dataset
+        attempts += 1
+        if zc < 3 and attempts == 10:
+            raise ValueError("problem with data generation")
+            break
     return x, y
 
 
