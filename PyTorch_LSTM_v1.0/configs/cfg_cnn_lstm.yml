@@ -16,7 +16,8 @@ betas: [0.9, 0.99]
 net_type: cnn_lstm
 
 save_path: ./outputs
-load_path: 
+#load_path: ./outputs/cnn_lstm/Num_of_Filters_32
+load_path:
 log_interval: 100
 save_interval: 100
 d: 0.2

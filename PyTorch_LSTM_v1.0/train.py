@@ -183,7 +183,7 @@ def train():
     net.train()
 
     if load_root and load_root.exists():
-        checkpoint = torch.load(load_root / "chkpnt.pt")
+        checkpoint = torch.load(load_root / "chkpnt_cnn_lstm_Last_epoch_1000.pt")
         net.load_state_dict(checkpoint['model_dict'])
         opt.load_state_dict(checkpoint['opt_dict'])
         steps = checkpoint['resume_step'] if 'resume_step' in checkpoint.keys() else 0
