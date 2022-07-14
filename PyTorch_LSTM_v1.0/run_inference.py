@@ -73,8 +73,8 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         X = x[:-ext_args['step']].unfold(dimension=0, size=ext_args['win_len'], step=ext_args['step'])
         y_yw, _ = yw(X, y, p=ext_args['win_len'])
 
-        # for Debug #
-        print('first sample is: ' + str(x[0]))
+        # # for Debug #
+        # print('first sample is: ' + str(x[0]))
 
         # from numpy.random import default_rng
         if len(x) > 1000:

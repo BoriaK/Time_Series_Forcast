@@ -5,8 +5,9 @@ import torch.nn.functional as F
 import torch.utils.data
 import numpy as np
 from augs import Augs
-from PyAstronomy import pyaC
 
+
+# from PyAstronomy import pyaC
 
 
 def gen_data(d, seq_len=1000):
@@ -30,8 +31,8 @@ def gen_data(d, seq_len=1000):
 
 def gen_data_b(d, seq_len, win_len, step, mode='train'):
     attempts = 0
-    zc = 0
-    while zc < 3 and attempts < 10:
+    ZC = 0
+    while ZC < 3 and attempts < 10:
         # 1.5 < m1,m2 <= 2
         m1 = 2
         m2 = 2
@@ -52,14 +53,15 @@ def gen_data_b(d, seq_len, win_len, step, mode='train'):
             x = x[:-step].unfold(dimension=0, size=win_len, step=step)
 
         # Check the number of zero crossings, to avoid "flat" data set generation
+        ##########################################
         x_norm = x - 0.5
         # Get coordinates and indices of zero crossings
-        xc = pyaC.zerocross1d(np.arange(len(x_norm)), x_norm.data, getIndices=False)
-        zc = len(xc)  # the number of zero crossings for the generated dataset
+        ZC = (np.diff(np.sign(x_norm.data)) != 0).sum()
+
         attempts += 1
-        if zc < 3 and attempts == 10:
+        if ZC < 3 and attempts == 10:
             raise ValueError("problem with data generation")
-            # break
+    ##############################################
     return x, y
 
 

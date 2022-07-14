@@ -74,7 +74,8 @@ def create_model(args):
 
     net = Net()
     if args['load_path']:
-        net.load_state_dict(torch.load(Path(args['load_path']) / 'chkpnt.pt')['model_dict'])
+        CheckpointName = 'chkpnt_' + args['net_type'] + '_Last_epoch_1000.pt'
+        net.load_state_dict(torch.load(Path(args['load_path']) / CheckpointName)['model_dict'])
     net.train()
     net.to(Device)
     return net

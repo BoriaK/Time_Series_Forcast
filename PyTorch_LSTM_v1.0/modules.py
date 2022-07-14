@@ -155,7 +155,7 @@ class LSTEMO(nn.Module):
 class LSTEMO2(nn.Module):
     def __init__(self, device=torch.device("cuda")):
         super().__init__()
-        nf = 32  # Number of filters in CNN
+        nf = 16  # Number of filters in CNN
         self.conv_stack = nn.Sequential(
             nn.ReflectionPad1d(1),
             nn.Conv1d(1, nf, kernel_size=3, stride=1, padding=0, bias=False),
