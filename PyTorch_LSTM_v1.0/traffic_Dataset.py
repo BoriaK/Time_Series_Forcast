@@ -32,7 +32,7 @@ def gen_data(d, seq_len=1000):
 def gen_data_b(d, seq_len, win_len, step, mode='train'):
     attempts = 0
     ZC = 0
-    while ZC < 3 and attempts < 10:
+    while ZC < 10 and attempts < 10:
         # 1.5 < m1,m2 <= 2
         m1 = 2
         m2 = 2
@@ -55,11 +55,11 @@ def gen_data_b(d, seq_len, win_len, step, mode='train'):
         # Check the number of zero crossings, to avoid "flat" data set generation
         ##########################################
         x_norm = x - 0.5
-        # Get coordinates and indices of zero crossings
+        # Get the total number of zero crossings of the signal
         ZC = (np.diff(np.sign(x_norm.data)) != 0).sum()
 
         attempts += 1
-        if ZC < 3 and attempts == 10:
+        if ZC < 10 and attempts == 10:
             raise ValueError("problem with data generation")
     ##############################################
     return x, y
