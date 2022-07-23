@@ -18,6 +18,7 @@ save_path: ./outputs
 load_path: 
 log_interval: 100
 save_interval: 100
-d: 0.2
+#d: 0.2
+d: [0.2, 0.3, 0.5, 0.7, 0.9]
 #augs: ['flip', cutout]
 augs:

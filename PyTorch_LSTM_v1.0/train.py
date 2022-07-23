@@ -23,7 +23,7 @@ Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cfg", default='configs/cfg_cnn_lstm.yml', type=Path)
+    parser.add_argument("--cfg", default='configs/cfg.yml', type=Path)
     args = parser.parse_args()
     return args
 
