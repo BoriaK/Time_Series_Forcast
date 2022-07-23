@@ -53,7 +53,12 @@ def evalAndPlot(ext_args, cpname, checkpoint):
     Loss_arr = np.zeros(tests)
     for tst in range(tests):
         criterion = torch.nn.L1Loss()
-        x, y = gen_data_b(d=0.2, seq_len=10000, win_len=ext_args['win_len'], step=1, mode='test')
+        if len(ext_args['d']) > 1:
+            d = ext_args['d'][torch.randint(0, len(ext_args['d']), (1,))]
+        else:
+            d = ext_args['d']
+        print('d = ' + str(d))
+        x, y = gen_data_b(d=d, seq_len=10000, win_len=ext_args['win_len'], step=1, mode='test')
         ys = torch.zeros_like(y)
         n_frames = x.shape[0] - ext_args['win_len']
         loss = 0
