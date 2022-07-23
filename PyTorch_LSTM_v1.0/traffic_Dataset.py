@@ -88,7 +88,12 @@ class Trafficdataset(torch.utils.data.Dataset):
         return self.n_sigs
 
     def gen_data(self):
-        self.x, self.y = gen_data_b(d=self.d, seq_len=self.seq_len, win_len=self.win_len, step=self.step)
+        if len(self.d) > 1:
+            d = self.d[torch.randint(0, len(self.d), (1,))]
+        else:
+            d = self.d
+        print('d = ' + str(d))
+        self.x, self.y = gen_data_b(d=d, seq_len=self.seq_len, win_len=self.win_len, step=self.step)
 
 
 if __name__ == "__main__":

@@ -15,6 +15,9 @@ from traffic_Dataset import Trafficdataset
 import os
 import shutil
 
+# v1 trains the networks over a specific d (from the relevant cfg)
+# v2 trains the networks over a random d each epoch (from the relevant cfg_v2)
+
 Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
