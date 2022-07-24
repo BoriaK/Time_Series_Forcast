@@ -23,7 +23,7 @@ Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cfg", default='configs/cfg.yml', type=Path)
+    parser.add_argument("--cfg", default='configs/cfg_cnn_lstm.yml', type=Path)
     args = parser.parse_args()
     return args
 
@@ -124,9 +124,13 @@ def train():
     # # for debug:
     # Device = torch.device("cuda")
     print(Device)
-    num_of_GPU = torch.cuda.device_count()
+
     if Device.type == 'cuda':
+        num_of_GPU = torch.cuda.device_count()
         print("number of GPUs is: " + str(num_of_GPU))
+    else:
+        num_of_CPU = os.cpu_count()
+        print("number of CPUs is: " + str(num_of_CPU))
 
     CheckPoint = None
 
