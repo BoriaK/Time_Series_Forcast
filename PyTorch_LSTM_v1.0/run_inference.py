@@ -17,7 +17,7 @@ Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--f_res", default='outputs/lstm/args.yml', type=Path)
+    parser.add_argument("--f_res", default='outputs/cnn_lstm/args.yml', type=Path)
     args = parser.parse_args()
     return args
 
@@ -56,7 +56,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         if len(ext_args['d']) > 1:
             d = ext_args['d'][torch.randint(0, len(ext_args['d']), (1,))]
         else:
-            d = ext_args['d']
+            d = ext_args['d'][0]
         print('d = ' + str(d))
         x, y = gen_data_b(d=d, seq_len=10000, win_len=ext_args['win_len'], step=1, mode='test')
         ys = torch.zeros_like(y)

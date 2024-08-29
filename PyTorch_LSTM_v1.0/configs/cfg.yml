@@ -1,7 +1,7 @@
 #gpu_factor: 4
 batch_size: 32
 #batch_size_cuda = batch_size * gpu_factor
-batch_size_cuda: 128
+batch_size_cuda: 32
 #seq_len: 16384
 seq_len: 4096
 #seq_len_cuda = seq_len * gpu_factor

@@ -23,7 +23,7 @@ Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cfg", default='configs/cfg.yml', type=Path)
+    parser.add_argument("--cfg", default='configs/cfg_cnn_lstm.yml', type=Path)
     args = parser.parse_args()
     return args
 
@@ -177,9 +177,9 @@ def train():
     ####################################
     # Dump arguments and create logger #
     ####################################
-    with open(root / "args.yml", "w") as f:
-        yaml.dump(args, f)
-    writer = SummaryWriter(str(root))
+    # with open(root / "args.yml", "w") as f:
+    #     yaml.dump(args, f)
+    # writer = SummaryWriter(str(root))
 
     torch.backends.cudnn.benchmark = True
     steps = 0
@@ -211,11 +211,14 @@ def train():
             opt.step()
             lr_scheduler.step()
             # ema.update(net, step=steps)
+
             ######################
             # Update tensorboard #
             ######################
-            writer.add_scalar("lr", opt.param_groups[0]['lr'], steps)
-            writer.add_scalar("metric/train", loss.item(), steps)
+            # writer.add_scalar("lr", opt.param_groups[0]['lr'], steps)
+            # writer.add_scalar("metric/train", loss.item(), steps)
+            ###########################################################
+
             steps += 1
 
             if steps % args['log_interval'] == 0:
@@ -228,7 +231,7 @@ def train():
                 )
             if steps % args['save_interval'] == 0:
                 loss_test = run_eval(test_loader, net, cross_entropy)
-                writer.add_scalar("metric/test", loss_test, steps)
+                # writer.add_scalar("metric/test", loss_test, steps)
 
                 if loss_test < best_loss:
                     best_loss = loss_test

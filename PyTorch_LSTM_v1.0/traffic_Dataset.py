@@ -91,7 +91,7 @@ class Trafficdataset(torch.utils.data.Dataset):
         if len(self.d) > 1:
             d = self.d[torch.randint(0, len(self.d), (1,))]
         else:
-            d = self.d
+            d = self.d[0]
         print('d = ' + str(d))
         self.x, self.y = gen_data_b(d=d, seq_len=self.seq_len, win_len=self.win_len, step=self.step)
 

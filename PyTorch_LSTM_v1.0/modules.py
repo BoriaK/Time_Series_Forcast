@@ -179,8 +179,6 @@ class LSTEMO2(nn.Module):
 if __name__ == "__main__":
     b = 2
     x = torch.randn(b, 1, 32)
-    net = Net(
-
-    )
+    net = Net()
     y = net(x)
     print(y.shape)

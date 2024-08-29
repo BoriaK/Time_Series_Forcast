@@ -1,0 +1,25 @@
+augs: null
+batch_size: 32
+batch_size_cuda: 32
+best_epoch: 4
+betas:
+- 0.9
+- 0.99
+d:
+- 0.2
+- 0.3
+- 0.5
+- 0.7
+- 0.9
+load_path: null
+log_interval: 100
+max_lr: 0.001
+n_epochs: 1000
+net_type: lstm
+save_interval: 100
+save_path: ./outputs
+seq_len: 4096
+seq_len_cuda: 16384
+step: 1
+wd: 0.0001
+win_len: 256
