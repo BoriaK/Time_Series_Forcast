@@ -48,13 +48,26 @@ class CausalConv1d(torch.nn.Conv1d):
         return result
 
 
+# class FastGlobalAvgPool(nn.Module):
+#     def __init__(self):
+#         super().__init__()
+#
+#     def forward(self, x):
+#         in_size = x.size()
+#         return x.view((in_size[0], in_size[1], -1)).mean(dim=2)
+
+
 class FastGlobalAvgPool(nn.Module):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, flatten=False):
+        super(FastGlobalAvgPool, self).__init__()
+        self.flatten = flatten
 
     def forward(self, x):
-        in_size = x.size()
-        return x.view((in_size[0], in_size[1], -1)).mean(dim=2)
+        if self.flatten:
+            in_size = x.size()
+            return x.view((in_size[0], in_size[1], -1)).mean(dim=2)
+        else:
+            return x.view(x.size(0), x.size(1), -1).mean(-1).view(x.size(0), x.size(1), 1)
 
 
 class ResBlock(nn.Module):
@@ -137,7 +150,7 @@ class Net(nn.Module):
         return x
 
 
-class LSTEMO(nn.Module):
+class LSTMO(nn.Module):
     def __init__(self, device=torch.device("cuda")):
         super().__init__()
         self.bn = nn.BatchNorm1d(num_features=1)
@@ -152,7 +165,7 @@ class LSTEMO(nn.Module):
         return y
 
 
-class LSTEMO2(nn.Module):
+class ConvLSTM(nn.Module):
     def __init__(self, device=torch.device("cuda")):
         super().__init__()
         nf = 16  # Number of filters in CNN
@@ -174,6 +187,78 @@ class LSTEMO2(nn.Module):
         y, h = self.l(x)
         y = self.fc(y[:, -1, :])
         return y
+
+
+class TransformerModel(nn.Module):
+    def __init__(self, input_dim=1, model_dim=256, num_heads=8, num_layers=2, output_dim=1,
+                 device=torch.device("cuda")):
+        super().__init__()
+        self.bn = nn.BatchNorm1d(num_features=input_dim)  # Batch normalization for the input
+        self.embedding = nn.Linear(input_dim, model_dim)  # Linear layer for embedding input
+        self.transformer_encoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(d_model=model_dim, nhead=num_heads, dim_feedforward=512, batch_first=True),
+            num_layers=num_layers
+        )
+        self.fc = nn.Linear(model_dim, output_dim)  # Fully connected layer for output
+
+    def forward(self, x):
+        # Normalize the input
+        x_norm = self.bn(x)  # Shape: (batch_size, seq_length, input_dim)
+        # Permute to (batch_size, sequence_length, input_dim)
+        x_norm = x_norm.permute(0, 2, 1)  # Shape: (batch_size, sequence_length, input_dim)
+        # Add an extra dimension if input is 2D (batch_size, seq_length)
+        if x_norm.ndim == 2:
+            x_norm = x_norm.unsqueeze(-1)  # Shape: (batch_size, seq_length, input_dim)
+        # Embed the input
+        x_embedded = self.embedding(x_norm)  # Shape: (batch_size, seq_length, model_dim)
+        # Reshape for Transformer: (seq_length, batch_size, model_dim)
+        x_transformed = x_embedded.permute(1, 0, 2)
+
+        # Pass through the transformer encoder
+        y = self.transformer_encoder(x_transformed)
+
+        # Get the output for the last time step
+        y = y[-1, :, :]  # Shape: (batch_size, model_dim)
+
+        # Final output layer
+        y = self.fc(y)  # Shape: (batch_size, output_dim)
+
+        return y
+
+
+class TransformerModelV02(nn.Module):
+    def __init__(self, input_dim=1, model_dim=64, num_heads=4, num_layers=2, output_dim=1,
+                 device=torch.device("cuda")):
+        super().__init__()
+        # self.num_tokens = 1
+        drop_rate = 0.1
+        self.bn = nn.BatchNorm1d(num_features=input_dim)  # Batch normalization for the input
+        # self.embedding = nn.Linear(input_dim, model_dim)  # Linear layer for embedding input
+        # maybe need to replace with several convolution layers
+        self.pos_emb = nn.Conv1d(input_dim, model_dim, 1, 1)  # positional embedding
+
+        enc_layer = nn.TransformerEncoderLayer(d_model=model_dim, nhead=num_heads, activation="gelu",
+                                               dim_feedforward=2 * model_dim, dropout=drop_rate, batch_first=True)
+        self.tf = nn.TransformerEncoder(enc_layer, num_layers=num_layers, enable_nested_tensor=False)
+        # self.cls_token = nn.Parameter(torch.zeros(1, 1, 64))
+        self.fc = nn.Linear(model_dim, output_dim)  # Fully connected layer for output
+        self.avg_pool = FastGlobalAvgPool(flatten=True)
+
+    def forward(self, x):
+        # Normalize the input
+        x_norm = self.bn(x)  # Shape: (batch_size, input_dim, seq_length)
+        # Embed the input
+        x_pos_embedded = self.pos_emb(x_norm)  # out Shape: (batch_size, model_dim, seq_length)
+        # Reshape for Transformer: (batch_size, seq_length, model_dim)
+        x_transformed = x_pos_embedded.permute(0, 2, 1)
+        # Pass through the transformer encoder
+        y = self.tf(x_transformed)  # out Shape: (batch_size, seq_length, model_dim)
+        # Reshape for Average Pooling: (batch_size, model_dim, seq_length)
+        y_perm = y.permute(0, 2, 1)
+        # Final output layer
+        y_avg_pool = self.avg_pool(y_perm)  # out shape (batch_size, model_dim)
+        out = self.fc(y_avg_pool)  # Shape: (batch_size, output_dim)
+        return out
 
 
 if __name__ == "__main__":

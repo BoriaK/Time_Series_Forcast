@@ -23,7 +23,7 @@ Device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--cfg", default='configs/cfg_cnn_lstm.yml', type=Path)
+    parser.add_argument("--cfg", default='configs/cfg_transformers.yml', type=Path)
     args = parser.parse_args()
     return args
 
@@ -69,9 +69,11 @@ def create_model(args):
     if args['net_type'] == 'cnn':
         from modules import Net as Net
     elif args['net_type'] == 'lstm':
-        from modules import LSTEMO as Net
+        from modules import LSTMO as Net
     elif args['net_type'] == 'cnn_lstm':
-        from modules import LSTEMO2 as Net
+        from modules import ConvLSTM as Net
+    elif args['net_type'] == 'transformers':
+        from modules import TransformerModelV02 as Net
     else:
         raise ValueError("wrong net type, received {}".format(args['net_type']))
 
@@ -184,6 +186,7 @@ def train():
     torch.backends.cudnn.benchmark = True
     steps = 0
     best_loss = 999
+    best_epoch = 0
     net.train()
 
     if load_root and load_root.exists():
@@ -223,10 +226,10 @@ def train():
 
             if steps % args['log_interval'] == 0:
                 print(
-                    "Epoch {} | train: loss {:.8f} | best {:.8f}".format(
+                    "Epoch {} | train: loss {:.8f} | step {}".format(
                         epoch,
                         loss,
-                        best_loss
+                        steps
                     )
                 )
             if steps % args['save_interval'] == 0:
@@ -235,6 +238,7 @@ def train():
 
                 if loss_test < best_loss:
                     best_loss = loss_test
+                    best_epoch = epoch
                     chkpnt = {
                         'model_dict': net.state_dict(),
                         'opt_dict': opt.state_dict(),
@@ -254,14 +258,15 @@ def train():
 
                 if steps % args['log_interval'] == 0:
                     print(
-                        "Epoch {} | train: loss {:.8f} | test: loss {:.8f} | best {:.8f}".format(
+                        "Epoch {} | train: loss {:.8f} | test: loss {:.8f} | best {:.8f} | best epoch {}".format(
                             epoch,
                             loss,
                             loss_test,
-                            best_loss
+                            best_loss,
+                            best_epoch
                         )
                     )
-                costs = []
+                # costs = []
     chkpnt = {
         'model_dict': net.state_dict(),
         'opt_dict': opt.state_dict(),

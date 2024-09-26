@@ -1,7 +1,7 @@
 augs: null
 batch_size: 32
 batch_size_cuda: 128
-best_epoch: 718
+best_epoch: 13
 betas:
 - 0.9
 - 0.99
@@ -19,4 +19,3 @@ seq_len_cuda: 16384
 step: 1
 wd: 1.0e-05
 win_len: 256
-last_epoch: 1000

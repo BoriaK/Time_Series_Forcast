@@ -26,9 +26,11 @@ def create_model(args, cp_path):
     if args['net_type'] == 'cnn':
         from modules import Net as Net
     elif args['net_type'] == 'lstm':
-        from modules import LSTEMO as Net
+        from modules import LSTMO as Net
     elif args['net_type'] == 'cnn_lstm':
-        from modules import LSTEMO2 as Net
+        from modules import ConvLSTM as Net
+    elif args['net_type'] == 'transformers':
+        from modules import TransformerModel_V02 as Net
     else:
         raise ValueError("wrong net type, received {}".format(args['net_type']))
 
