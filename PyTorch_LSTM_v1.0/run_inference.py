@@ -25,16 +25,35 @@ def parse_args():
 def create_model(args, cp_path):
     if args['net_type'] == 'cnn':
         from modules import Net as Net
+        net = Net()
     elif args['net_type'] == 'lstm':
         from modules import LSTMO as Net
+        net = Net()
     elif args['net_type'] == 'cnn_lstm':
-        from modules import ConvLSTM as Net
+        from modules import CNNLSTM as Net
+        net = Net()
     elif args['net_type'] == 'transformers':
-        from modules import TransformerModel_V02 as Net
+        from modules import TransformerModelV04 as Net
+        net = Net()
+    elif args['net_type'] == 'narnn':
+        from modules import NARNN as Net
+        net = Net(
+            win_len=args['win_len'],
+            hidden_size=args['hidden_size'],
+            num_layers=args['num_layers'],
+            device=Device
+        )
+    elif args['net_type'] == 'convlstm':
+        from modules import ConvLSTM as Net
+        net = Net(
+            input_channels=1,
+            hidden_channels=args.get('hidden_channels', 64),
+            num_layers=args.get('num_layers', 2),
+            kernel_size=args.get('kernel_size', 3),
+            device=Device
+        )
     else:
         raise ValueError("wrong net type, received {}".format(args['net_type']))
-
-    net = Net()
 
     net.load_state_dict(torch.load(cp_path)['model_dict'])
 
@@ -50,7 +69,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
 
     # root = Path(ext_args['save_path'] + '/' + ext_args['net_type'])
 
-    # run a loop over 5 different random test instances
+    # run a loop over 20 different random test instances
     tests = 20
     Loss_arr = np.zeros(tests)
     for tst in range(tests):
@@ -73,7 +92,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
                 loss += criterion(pred.view_as(y[i]), y[i]).item()
                 ys[i] = pred.cpu()
         loss /= n_frames
-        print(loss)
+        print('MAE = ' + str(loss))
         Loss_arr[tst] = loss
         from yw import yw
         y = x[ext_args['win_len']::ext_args['step']]
@@ -113,6 +132,9 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         plt.grid()
         plt.title('ABS Prediction Error, test ' + str(tst + 1) + ' from ' + str(FirstSample) + ', 1k samples')
         plt.legend(['ABS Error'])
+        if not os.path.exists(ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/'):
+            # Create the folder
+            os.makedirs(ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/')
         plt.savefig(
             ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/' + cpname + '_test_' + str(tst + 1) + '.png',
             bbox_inches='tight')
@@ -121,10 +143,11 @@ def evalAndPlot(ext_args, cpname, checkpoint):
     AVG_Loss = Loss_arr.mean()
     Dir_Path = ext_args['save_path'] + '/' + ext_args['net_type'] + '/result_plots/' + cpname + '_AVG_MAE_' + str(
         AVG_Loss)
-    os.mkdir(Dir_Path)
+    os.makedirs(Dir_Path)
     files = glob.glob(ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/' + '*.png')
     for f in files:
         shutil.move(f, Dir_Path)
+    os.rmdir(ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/')
     print('the AVERAGE MAE for ' + cpname + ' is: ' + str(AVG_Loss))
     return
 
@@ -137,13 +160,18 @@ def run():
         args = yaml.load(f, Loader=yaml.Loader)  # for collab
 
     if args['save_path']:
-        if args['best_epoch'] != args['last_epoch']:
-            CheckPointName = args['net_type'] + '_Best_epoch_' + str(args['best_epoch'])
-            CheckPoint = os.path.join(args['save_path'], args['net_type'], 'chkpnt_' + CheckPointName + '.pt')
-            evalAndPlot(args, CheckPointName, CheckPoint)  # evaluate "Best" model
-        CheckPointName = args['net_type'] + '_Last_epoch_' + str(args['last_epoch'])
+        last_epoch = args.get('last_epoch')
+        best_epoch = args.get('best_epoch')
+
+        CheckPointName = args['net_type'] + '_Best_epoch_' + str(best_epoch)
         CheckPoint = os.path.join(args['save_path'], args['net_type'], 'chkpnt_' + CheckPointName + '.pt')
-        evalAndPlot(args, CheckPointName, CheckPoint)  # evaluate "Last" model
+        evalAndPlot(args, CheckPointName, CheckPoint)  # evaluate "Best" model
+
+        if last_epoch and best_epoch != last_epoch:
+            CheckPointName = args['net_type'] + '_Last_epoch_' + str(last_epoch)
+            CheckPoint = os.path.join(args['save_path'], args['net_type'], 'chkpnt_' + CheckPointName + '.pt')
+            evalAndPlot(args, CheckPointName, CheckPoint)  # evaluate "Last" model
+
     else:
         raise ValueError("no saved checkpoint")
 

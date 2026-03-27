@@ -1,0 +1,27 @@
+# Configuration for ConvLSTM model
+# ConvLSTM uses convolution operations in LSTM gates for both input-to-state and state-to-state transitions
+# Optimized parameters to prevent overfitting and improve learning stability
+
+batch_size: 32
+batch_size_cuda: 32
+seq_len: 4096
+seq_len_cuda: 16384
+win_len: 256
+step: 1
+n_epochs: 100  # Limited to 50 epochs for quick evaluation
+wd: 0.000125  # Increased weight decay from 0.0001 to add more regularization
+max_lr: 0.0011250000000000001  # Reduced from 0.001 for more stable learning
+betas: [0.9, 0.999]  # Adjusted beta2 for better convergence
+net_type: convlstm
+
+# ConvLSTM specific parameters
+hidden_channels: 75  # Reduced from 64 to prevent overfitting (fewer parameters)
+num_layers: 2        # Keep at 2 layers
+kernel_size: 7       # Increased from 3 to capture wider temporal context
+
+save_path: ./outputs
+load_path: ./outputs
+log_interval: 50  # More frequent logging to monitor better
+save_interval: 50  # More frequent checkpointing
+d: [0.2]  # Fixed d=0.2 for consistent comparison (valid range: 0-1)
+augs:
