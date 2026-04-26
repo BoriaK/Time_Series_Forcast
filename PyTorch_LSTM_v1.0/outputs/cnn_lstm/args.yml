@@ -1,7 +1,8 @@
 augs: null
 batch_size: 32
 batch_size_cuda: 128
-best_epoch: 13
+best_epoch: 718
+last_epoch: 1000
 betas:
 - 0.9
 - 0.99

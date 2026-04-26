@@ -92,6 +92,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
                 loss += criterion(pred.view_as(y[i]), y[i]).item()
                 ys[i] = pred.cpu()
         loss /= n_frames
+        loss = round(loss, 4)
         print('MAE = ' + str(loss))
         Loss_arr[tst] = loss
         from yw import yw
@@ -132,6 +133,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
         plt.grid()
         plt.title('ABS Prediction Error, test ' + str(tst + 1) + ' from ' + str(FirstSample) + ', 1k samples')
         plt.legend(['ABS Error'])
+        plt.subplots_adjust(hspace=0.45)
         if not os.path.exists(ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/'):
             # Create the folder
             os.makedirs(ext_args['save_path'] + '/' + ext_args['net_type'] + '/temp/')
@@ -140,7 +142,7 @@ def evalAndPlot(ext_args, cpname, checkpoint):
             bbox_inches='tight')
         # plt.show()
         plt.close()
-    AVG_Loss = Loss_arr.mean()
+    AVG_Loss = round(Loss_arr.mean(), 4)
     Dir_Path = ext_args['save_path'] + '/' + ext_args['net_type'] + '/result_plots/' + cpname + '_AVG_MAE_' + str(
         AVG_Loss)
     os.makedirs(Dir_Path)
